@@ -1,0 +1,52 @@
+<script type="text/javascript" src="<%=resource%>/xhr.js"></script>
+<script type="text/javascript">//<![CDATA[
+XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "ststatus")%>', null,
+		function(x, rv)
+		{
+			document.getElementById("sttxt").value=rv.result;
+		}
+	);
+	
+
+function sendcmd(btn)
+	{
+		document.getElementById("sttxt").value=" Starting Speed Test";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "ststart")%>',
+				null,
+				function(x, rv)
+				{
+				}
+			);
+	};
+	
+//]]></script>
+
+<fieldset class="cbi-section" id="cbi-family">
+	<legend>Results</legend>
+	<table width="550"  border="0">
+	<tr>
+    	<td width="20%">&nbsp;</td>
+		<td width="17%"><input type="button" id="generate" class="cbi-button cbi-button-apply" value="<%:Run Speed Test%>" onclick="return sendcmd(this)" /></td>
+		<td width="17%">&nbsp;</td>
+    	<td width="46%">&nbsp;</td>
+  	</tr>
+	</table>
+	<p>&nbsp;</p>
+	<table width="550"  border="0">
+	<tr>
+    	<td width="5%">&nbsp;</td>
+		<td width="27%">Save & Apply to save changes to the Options before you run the speed test </td>
+		<td width="17%">&nbsp;</td>
+    	<td width="51%">&nbsp;</td>
+  	</tr>
+	</table>
+	<p>&nbsp;</p>
+	<table id="cmdtxt" width="700"  border="0" style="display:table;">
+  	<tr>
+    		<td width="100%">
+		<textarea readonly="readonly" name="sttxt" id="sttxt" rows="20" style="width: 600px;" maxlength="160"></textarea> 
+		</td>
+	</tr>
+</table>
+	
+</fieldset>

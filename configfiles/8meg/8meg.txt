@@ -1,0 +1,13 @@
+Different Images for 8meg routers
+=================================
+
+Because the size of a ROOter image has grown with each new revision of OpenWrt, a full 
+ROOter will no longer will fit into 8meg of flash memory.
+
+Instead, you have images that have Samba (Network Sharing) support or images that
+have OpenVPN support but not both together.
+
+These images are identified by "samba" or "vpn" in the file name.
+
+The rest of the ROOter features are present in these images but you can have
+either Samba or OpenVPN but not both together.

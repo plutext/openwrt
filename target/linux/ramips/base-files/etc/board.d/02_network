@@ -94,6 +94,7 @@ ramips_setup_interfaces()
 	ew1200|\
 	firewrt|\
 	hc5661a|\
+	hc5962|\
 	hlk-rm04|\
 	k2p|\
 	kn|\
@@ -130,6 +131,7 @@ ramips_setup_interfaces()
 	youku,yk-l2|\
 	zbt-ape522ii|\
 	zbt-we1326|\
+	zbt-we1326v5|\
 	zbtlink,zbt-we826-e|\
 	zbtlink,zbt-we3526|\
 	zbt-we826-16M|\
@@ -343,10 +345,6 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "5:wan" "6@eth0"
 		;;
-	hc5962)
-		ucidef_add_switch "switch0" \
-			"1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
-		;;
 	iodata,wn-ac1167gr|\
 	iodata,wn-ac733gr3)
 		ucidef_add_switch "switch1" \
@@ -455,7 +453,8 @@ ramips_setup_interfaces()
 			"0:wan" "3:lan" "4:lan" "6@eth0"
 		;;
 	wt3020-4M|\
-	wt3020-8M)
+	wt3020-8M|\
+	wt3020-16M)
 		ucidef_add_switch "switch0" \
 			"4:lan" "0:wan" "6@eth0"
 		;;
