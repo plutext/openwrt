@@ -1,0 +1,8 @@
+
+config test 'test'
+	option ipv '4'
+	option duration '10'
+	option session 'c'
+	option host 'netperf-eu.bufferbloat.net'
+	option ping '1.1.1.1'
+
