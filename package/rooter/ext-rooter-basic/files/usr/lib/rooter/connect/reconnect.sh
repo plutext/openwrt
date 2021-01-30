@@ -1,6 +1,5 @@
 #!/bin/sh
 
-ROOTER=/usr/lib/rooter
 ROOTER_LINK="/tmp/links"
 
 log() {
@@ -8,4 +7,6 @@ log() {
 }
 
 CURRMODEM=$1
+log "Re-starting Connection for Modem $CURRMODEM"
 $ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM 1
+

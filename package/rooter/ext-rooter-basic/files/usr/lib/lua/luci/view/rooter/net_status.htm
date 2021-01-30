@@ -1,5 +1,6 @@
 <%+header%>
 
+<style>g {color:grey; font-size:75%; vertical-align: super;}</style>
 <script type="text/javascript" src="<%=resource%>/xhr.js"></script>
 <script type="text/javascript">//<![CDATA[
 
@@ -39,6 +40,7 @@
 			document.getElementById('conmon').innerHTML=rv.netmode;
 			document.getElementById('tempur').innerHTML=rv.tempur;
 			document.getElementById('proto').innerHTML=rv.proto;
+			document.getElementById('pci').innerHTML=rv.pci;
 
 			document.getElementById('crate').innerHTML=rv.crate;
 			if (phonenx == "")
@@ -120,6 +122,7 @@
 		document.getElementById('imsi').innerHTML="-";
 		document.getElementById('iccid').innerHTML="-";
 		document.getElementById('lband').innerHTML="-";
+		document.getElementById('pci').innerHTML="-";
 	}
 
 	function increase(btn)
@@ -166,6 +169,7 @@
 			{
 				btn.disabled = false;
 				btn.value    = '<%:Next Modem%>';
+				phonenx = "";
 			}
 		);
 
@@ -182,6 +186,7 @@
 			{
 				btn.disabled = false;
 				btn.value    = '<%:Prev Modem%>';
+				phonenx = "";
 			}
 		);
 
@@ -379,12 +384,12 @@
     		<td>&nbsp;</td>
   	</tr>
   	<tr>
-    		<td><div align="right">ECIO : </div></td>
+    		<td><div align="right">ECIO<g>3G</g>/RSRQ<g>4G</g>/SS_RSRQ<g>5G</g : </div></td>
     		<td><ul><span id="ecio" class="r"></span><span id="ecio1" class="r"></span></ul></td>
     		<td>&nbsp;</td>
   	</tr>
   	<tr>
-    		<td><div align="right">RSCP : </div></td>
+    		<td><div align="right">RSCP<g>3G</g>/RSRP<g>4G</g>/SS_RSRP<g>5G</g> : </div></td>
     		<td><ul><span id="rscp" class="r"></span><span id="rscp1" class="r"></span></ul></td>
     		<td>&nbsp;</td>
   	</tr>
@@ -405,12 +410,12 @@
     		<td width="1%">&nbsp;</td>
   	</tr>
   	<tr>
-    		<td><div align="right">RNC/eNB ID :</div></td>
+    		<td><div align="right">RNC<g>3G</g>/eNB ID<g>4G/5G</g> :</div></td>
     		<td><ul><span id="rnc" class="r"></span><span id="rncn" class="r"></span></ul></td>
     		<td>&nbsp;</td>
   	</tr>
   	<tr>
-    		<td><div align="right">LAC/TAC :</div></td>
+    		<td><div align="right">LAC<g>3G</g>/TAC<g>4G/5G</g> :</div></td>
     		<td><ul><span id="lac" class="r"></span><span id="lacn" class="r"></span></ul></td>
     		<td>&nbsp;</td>
   	</tr>
@@ -420,13 +425,18 @@
     		<td>&nbsp;</td>
   	</tr>
 	<tr>
-    		<td><div align="right">LTE Band : </div></td>
+    		<td><div align="right">Band : </div></td>
     		<td><ul id="lband"></ul></td>
     		<td>&nbsp;</td>
   	</tr>
   	<tr>
     		<td><div align="right">Channel : </div></td>
     		<td><ul id="chan"></ul></td>
+    		<td>&nbsp;</td>
+  	</tr>
+	<tr>
+    		<td><div align="right">PCI : </div></td>
+    		<td><ul id="pci"></ul></td>
     		<td>&nbsp;</td>
   	</tr>
   	<tr>

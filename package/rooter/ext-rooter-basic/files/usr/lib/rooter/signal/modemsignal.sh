@@ -18,75 +18,87 @@ MONSTAT="Unknown"
 rm -f /tmp/monstat$CURRMODEM
 
 make_connect() {
-	echo "Changing Port" > /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "$MODEM" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo " " >> /tmp/statusx$CURRMODEM.file
-	echo " " >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "$CONN" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
+	{
+		echo "Changing Port"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "$MODEM"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo " "
+		echo " "
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "$CONN"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+		echo "-"
+	} > /tmp/statusx$CURRMODEM.file
 	mv -f /tmp/statusx$CURRMODEM.file /tmp/status$CURRMODEM.file
 }
 
 make_signal() {
-	echo "$COMMPORT" > /tmp/statusx$CURRMODEM.file
-	echo "$CSQ" >> /tmp/statusx$CURRMODEM.file
-	echo "$CSQ_PER" >> /tmp/statusx$CURRMODEM.file
-	echo "$CSQ_RSSI" >> /tmp/statusx$CURRMODEM.file
-	echo "$MODEM" >> /tmp/statusx$CURRMODEM.file
-	echo "$COPS" >> /tmp/statusx$CURRMODEM.file
-	echo "$MODE" >> /tmp/statusx$CURRMODEM.file
-	echo "$LAC" >> /tmp/statusx$CURRMODEM.file
-	echo "$LAC_NUM" >> /tmp/statusx$CURRMODEM.file
-	echo "$CID" >> /tmp/statusx$CURRMODEM.file
-	echo "$CID_NUM" >> /tmp/statusx$CURRMODEM.file
-	echo "$COPS_MCC" >> /tmp/statusx$CURRMODEM.file
-	echo "$COPS_MNC" >> /tmp/statusx$CURRMODEM.file
-	echo "$RNC" >> /tmp/statusx$CURRMODEM.file
-	echo "$RNC_NUM" >> /tmp/statusx$CURRMODEM.file
-	echo "$DOWN" >> /tmp/statusx$CURRMODEM.file
-	echo "$UP" >> /tmp/statusx$CURRMODEM.file
-	echo "$ECIO" >> /tmp/statusx$CURRMODEM.file
-	echo "$RSCP" >> /tmp/statusx$CURRMODEM.file
-	echo "$ECIO1" >> /tmp/statusx$CURRMODEM.file
-	echo "$RSCP1" >> /tmp/statusx$CURRMODEM.file
-	echo "$MONSTAT" >> /tmp/statusx$CURRMODEM.file
-	echo "$CELL" >> /tmp/statusx$CURRMODEM.file
-	echo "$MODTYPE" >> /tmp/statusx$CURRMODEM.file
-	echo "$CONN" >> /tmp/statusx$CURRMODEM.file
-	echo "$CHANNEL" >> /tmp/statusx$CURRMODEM.file
-	echo "$CNUM" >> /tmp/statusx$CURRMODEM.file
-	echo "$CNAM" >> /tmp/statusx$CURRMODEM.file
-	echo "$LBAND" >> /tmp/statusx$CURRMODEM.file
-	echo "$TEMP" >> /tmp/statusx$CURRMODEM.file
-	echo "$PROTO" >> /tmp/statusx$CURRMODEM.file
-	echo "-" >> /tmp/statusx$CURRMODEM.file
+	{
+		echo "$COMMPORT"
+		echo "$CSQ"
+		echo "$CSQ_PER"
+		echo "$CSQ_RSSI"
+		echo "$MODEM"
+		echo "$COPS"
+		echo "$MODE"
+		echo "$LAC"
+		echo "$LAC_NUM"
+		echo "$CID"
+		echo "$CID_NUM"
+		echo "$COPS_MCC"
+		echo "$COPS_MNC"
+		echo "$RNC"
+		echo "$RNC_NUM"
+		echo "$DOWN"
+		echo "$UP"
+		echo "$ECIO"
+		echo "$RSCP"
+		echo "$ECIO1"
+		echo "$RSCP1"
+		echo "$MONSTAT"
+		echo "$CELL"
+		echo "$MODTYPE"
+		echo "$CONN"
+		echo "$CHANNEL"
+		echo "$CNUM"
+		echo "$CNAM"
+		echo "$LBAND"
+		echo "$TEMP"
+		echo "$PROTO"
+		echo "$PCI"
+		echo "-"
+		echo "-"
+	} > /tmp/statusx$CURRMODEM.file
 	mv -f /tmp/statusx$CURRMODEM.file /tmp/status$CURRMODEM.file
+	
+	if [ -e $ROOTER/modem-led.sh ]; then
+		$ROOTER/modem-led.sh $CURRMODEM 4 $CSQ
+	fi
 }
 
 get_basic() {
@@ -131,18 +143,26 @@ while [ 1 = 1 ]; do
 		else
 			VENDOR=$(uci get modem.modem$CURRMODEM.idV)
 			PROD=$(uci get modem.modem$CURRMODEM.idP)
+# This case statement should be kept in sync with: $ROOTER/luci/celltype.sh
 			case $VENDOR in
 			"1199"|"0f3d" )
 				$ROOTER/common/sierradata.sh $CURRMODEM $COMMPORT
 				;;
 			"19d2" )
-				$ROOTER/common/ztedata.sh $CURRMODEM $COMMPORT
+				if [ $PROD = 1432 ]; then
+					$ROOTER/common/mdm9215data.sh $CURRMODEM $COMMPORT
+				else
+					$ROOTER/common/ztedata.sh $CURRMODEM $COMMPORT
+				fi
 				;;
 			"12d1" )
 				$ROOTER/common/huaweidata.sh $CURRMODEM $COMMPORT
 				;;
 			"2c7c" )
 				$ROOTER/common/quecteldata.sh $CURRMODEM $COMMPORT
+				;;
+			"2cb7" )
+				$ROOTER/common/fibocomdata.sh $CURRMODEM $COMMPORT
 				;;
 			"05c6" )
 				case $PROD in
@@ -155,20 +175,30 @@ while [ 1 = 1 ]; do
 					"9090"|"9003"|"9215" )
 						$ROOTER/common/quecteldata.sh $CURRMODEM $COMMPORT
 					;;
+					"90db" )
+						$ROOTER/common/simcomdata.sh $CURRMODEM $COMMPORT
+					;;
 					* )
 						$ROOTER/common/otherdata.sh $CURRMODEM $COMMPORT
 					;;
 				esac
 				;;
 			"1bc7" )
-				$ROOTER/common/telitdata.sh $CURRMODEM $COMMPORT
+				case $PROD in
+					"1900"|"1901" )
+						$ROOTER/common/t77data.sh $CURRMODEM $COMMPORT
+					;;
+					* )
+						$ROOTER/common/telitdata.sh $CURRMODEM $COMMPORT
+					;;
+				esac
 				;;
 			"1410" )
 				$ROOTER/common/novateldata.sh $CURRMODEM $COMMPORT
 				;;
 			"413c" )
 				case $PROD in
-					"81d7" )
+					"81d7"|"81d8" )
 						$ROOTER/common/t77data.sh $CURRMODEM $COMMPORT
 					;;
 					* )
@@ -179,11 +209,22 @@ while [ 1 = 1 ]; do
 			"0489" |"03f0" )
 				$ROOTER/common/t77data.sh $CURRMODEM $COMMPORT
 				;;
+			"1e0e" )
+				$ROOTER/common/simcomdata.sh $CURRMODEM $COMMPORT
+				;;
+			"8087" )
+				if [ $PROD = "095a" ]; then
+					$ROOTER/common/fibocomdata.sh $CURRMODEM $COMMPORT
+				fi
+				;;
 			* )
 				$ROOTER/common/otherdata.sh $CURRMODEM $COMMPORT
 				;;
 			esac
 			CHANNEL="-"
+			PCI="-"
+			LBAND="-"
+			TEMP="-"
 			source /tmp/signal$CURRMODEM.file
 			rm -f /tmp/signal$CURRMODEM.file
 			if [ -e /tmp/phonenumber$CURRMODEM ]; then
@@ -215,5 +256,3 @@ while [ 1 = 1 ]; do
 	done
 	STARTIMEX=$CURRTIME
 done
-
-

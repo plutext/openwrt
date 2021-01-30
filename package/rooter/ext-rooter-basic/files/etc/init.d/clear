@@ -6,7 +6,7 @@ START=19
 start() {
 	COUNTER=1
 	while [ $COUNTER -le 5 ]; do
-		INEX=$(uci get network.wan$COUNTER)
+		INEX=$(uci -q get network.wan$COUNTER)
 		if [ -z $INEX ]; then
 			break
 		else

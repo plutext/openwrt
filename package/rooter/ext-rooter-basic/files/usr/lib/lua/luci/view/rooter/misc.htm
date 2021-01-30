@@ -3,6 +3,29 @@
 <script type="text/javascript" src="<%=resource%>/xhr.js"></script>
 <script type="text/javascript">//<![CDATA[
 
+	bnds = "0" ;
+	chnge = 0 ;
+	sca = 0;
+	selectall = 1 ;
+	var sierra = new Array();
+	var uVid ;
+	var chkbox = new Array() ;
+	var checkbox = new Array() ;
+	var bx ;
+	var blen ;
+	var inr ;
+	var bndid = new Array() ;
+	var bndb1 ;
+	var bndb2 ;
+	var bndid3 = new Array() ;
+	var bndb31 ;
+	var bndb32 ;
+	var bndb33 ;
+	var indx ;
+	var caindx ;
+	var indx3 ;
+	var caindx3 ;
+	
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "modem", "check_misc")%>', null,
 		function(x, rv)
 		{
@@ -12,6 +35,7 @@
 			usb = rv.usb
 			if ( stat == "0" )
 			{
+				bnds = "0" ;
 				document.getElementById("active").innerHTML="No Modem Present";
 				document.getElementById("conn").disabled=true;
 				document.getElementById("disconn").disabled=true;
@@ -22,7 +46,27 @@
 				document.getElementById("net1").style.display="none";
 				document.getElementById("net2").style.display="none";
 				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="none";
+				document.getElementById("tab5").style.display = "none";
+				document.getElementById("tab6").style.display = "none";
+				document.getElementById("tab7").style.display = "none";
+				document.getElementById("tab8").style.display = "none";
+				document.getElementById("tab9").style.display = "none";
+				document.getElementById("tab11").style.display = "none";
+				document.getElementById("tab12").style.display = "none";
+				document.getElementById("dym1").style.display = "none";
+				document.getElementById("dym2").style.display = "none";
+				document.getElementById("dym3").style.display = "none";
+				document.getElementById("tab10").style.display = "none";
+				document.getElementById("tab13").style.display = "none";
+				document.getElementById("tab14").style.display = "none";
+				document.getElementById("bndtxt").value=" ";
+				//
+				// remove for link to tutorial
+				//
+				document.getElementById("tutbnd").style.display = "none";
+				
 				if ( gpio == "0" )
 				{
 					document.getElementById("pwrtoggle").style.display="none";
@@ -57,9 +101,9 @@
 						document.getElementById("pwrtoggle1").style.display="none";
 					}
 					if ( usb == "1" )
-					{ 
+					{
 						document.getElementById("pwrtoggle").style.display="block";
-						document.getElementById("pwrtoggle").value="Re-bind USB 1 Driver";
+						document.getElementById("pwrtoggle").value="Reset USB 1";
 						document.getElementById("pwrtoggle").disabled=false;
 						document.getElementById("pwrtoggle").style.visibility="visible";
 						document.getElementById("pwrtoggle1").style.display="none";
@@ -67,27 +111,33 @@
 					if ( usb == "2" )
 					{
 						document.getElementById("pwrtoggle").style.display="block";
-						document.getElementById("pwrtoggle").value="Re-bind USB 1 Driver";
+						document.getElementById("pwrtoggle").value="Reset USB 1";
 						document.getElementById("pwrtoggle").disabled=false;
 						document.getElementById("pwrtoggle").style.visibility="visible";
 						document.getElementById("pwrtoggle1").style.display="block";
-						document.getElementById("pwrtoggle1").value="Re-bind USB 2 Driver";
+						document.getElementById("pwrtoggle1").value="Reset USB 2";
 						document.getElementById("pwrtoggle1").disabled=false;
 						document.getElementById("pwrtoggle1").style.visibility="visible";
 					}
 				}
 				if ( gpio == "1" )
 				{
-					document.getElementById("pwrtoggle").disabled=false;
 					document.getElementById("pwrtoggle").style.display="block";
+					document.getElementById("pwrtoggle").value="Power Toggle USB 1";
+					document.getElementById("pwrtoggle").disabled=false;
+					document.getElementById("pwrtoggle").style.visibility="visible";
 					document.getElementById("pwrtoggle1").style.display="none";
 				}
 				if ( gpio == "2" )
 				{
 					document.getElementById("pwrtoggle").style.display="block";
-					document.getElementById("pwrtoggle1").style.display="block";
+					document.getElementById("pwrtoggle").value="Power Toggle USB 1";
 					document.getElementById("pwrtoggle").disabled=false;
+					document.getElementById("pwrtoggle").style.visibility="visible";
+					document.getElementById("pwrtoggle1").style.display="block";
+					document.getElementById("pwrtoggle1").value="Power Toggle USB 2";
 					document.getElementById("pwrtoggle1").disabled=false;
+					document.getElementById("pwrtoggle1").style.visibility="visible";
 				}
 			}
 			if ( stat == "2" )
@@ -105,9 +155,9 @@
 						document.getElementById("pwrtoggle1").style.display="none";
 					}
 					if ( usb == "1" )
-					{ 
+					{
 						document.getElementById("pwrtoggle").style.display="block";
-						document.getElementById("pwrtoggle").value="Re-bind USB 1 Driver";
+						document.getElementById("pwrtoggle").value="Reset USB 1";
 						document.getElementById("pwrtoggle").disabled=false;
 						document.getElementById("pwrtoggle").style.visibility="visible";
 						document.getElementById("pwrtoggle1").style.display="none";
@@ -115,11 +165,11 @@
 					if ( usb == "2" )
 					{
 						document.getElementById("pwrtoggle").style.display="block";
-						document.getElementById("pwrtoggle").value="Re-bind USB 1 Driver";
+						document.getElementById("pwrtoggle").value="Reset USB 1";
 						document.getElementById("pwrtoggle").disabled=false;
 						document.getElementById("pwrtoggle").style.visibility="visible";
 						document.getElementById("pwrtoggle1").style.display="block";
-						document.getElementById("pwrtoggle1").value="Re-bind USB 2 Driver";
+						document.getElementById("pwrtoggle1").value="Reset USB 2";
 						document.getElementById("pwrtoggle1").disabled=false;
 						document.getElementById("pwrtoggle1").style.visibility="visible";
 					}
@@ -127,6 +177,7 @@
 				if ( gpio == "1" )
 				{
 					document.getElementById("pwrtoggle").style.display="block";
+					document.getElementById("pwrtoggle").value="Power Toggle USB 1";
 					document.getElementById("pwrtoggle").disabled=false;
 					document.getElementById("pwrtoggle").style.visibility="visible";
 					document.getElementById("pwrtoggle1").style.display="none";
@@ -134,9 +185,11 @@
 				if ( gpio == "2" )
 				{
 					document.getElementById("pwrtoggle").style.display="block";
-					document.getElementById("pwrtoggle1").style.display="block";
+					document.getElementById("pwrtoggle").value="Power Toggle USB 1";
 					document.getElementById("pwrtoggle").disabled=false;
 					document.getElementById("pwrtoggle").style.visibility="visible";
+					document.getElementById("pwrtoggle1").style.display="block";
+					document.getElementById("pwrtoggle1").value="Power Toggle USB 2";
 					document.getElementById("pwrtoggle1").disabled=false;
 					document.getElementById("pwrtoggle1").style.visibility="visible";
 				}
@@ -177,6 +230,12 @@
 				case "7":
 					mode = "4G Only";
 				break;
+				case "8":
+					mode = "4G & 5G Dual Mode";
+				break;
+				case "9":
+					mode = "5G Only";
+				break;
 				case "10":
 					mode = "Changing Mode ...";
 					document.getElementById("apply1").value="Applying Change";
@@ -192,6 +251,7 @@
 				document.getElementById("net1").style.display="none";
 				document.getElementById("net2").style.display="none";
 				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="none";
 			}
 			if ( cell == "0" )
@@ -199,6 +259,7 @@
 				document.getElementById("net1").style.display="none";
 				document.getElementById("net2").style.display="none";
 				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="none";
 			}
 			if ( cell == "1" )
@@ -207,6 +268,7 @@
 				document.getElementById("net1").style.visibility="visible";
 				document.getElementById("net2").style.display="none";
 				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="block";
 				document.getElementById("apply1").style.visibility="visible";
 			}
@@ -216,6 +278,7 @@
 				document.getElementById("net2").style.display="none";
 				document.getElementById("net3").style.display="block";
 				document.getElementById("net3").style.visibility="visible";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="block";
 				document.getElementById("apply1").style.visibility="visible";
 			}
@@ -225,15 +288,264 @@
 				document.getElementById("net2").style.display="block";
 				document.getElementById("net2").style.visibility="visible";
 				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="none";
 				document.getElementById("apply1").style.display="block";
 				document.getElementById("apply1").style.visibility="visible";
 			}
-			//document.getElementById("sendcmdat").focus();
+			if ( cell == "4" )
+			{
+				document.getElementById("net1").style.display="none";
+				document.getElementById("net2").style.display="none";
+				document.getElementById("net3").style.display="none";
+				document.getElementById("net4").style.display="block";
+				document.getElementById("net4").style.visibility="visible";
+				document.getElementById("apply1").style.display="block";
+				document.getElementById("apply1").style.visibility="visible";
+			}
+
+			bx = rv.bndsup ;
+			if ( stat != "0" && bx != "0" )
+			{
+				blen = bx.length ;
+				
+				if ( bnds != "1" )
+				{
+					uVid = rv.uVid ;
+					document.getElementById("tab5").style.display = "";
+					document.getElementById("tab6").style.display = "";
+					document.getElementById("tab7").style.display = "";
+					document.getElementById("tab8").style.display = "";
+					document.getElementById("tab9").style.display = "none";
+					document.getElementById("tab10").style.display = "";
+					document.getElementById("tab11").style.display = "";
+					document.getElementById("tab12").style.display = "";
+					document.getElementById("tab13").style.display = "none";
+					document.getElementById("tutbnd").style.display = "none";
+					document.getElementById("tab14").style.display = "none";
+					document.getElementById("dym1").style.display = "none";
+					document.getElementById("dym2").style.display = "none";
+					document.getElementById("dym3").style.display = "none";
+					document.getElementById("bndtxt").value=" ";
+					
+					var ix = -1;
+					var j = 1;
+					var tbl = document.getElementById('dym1');
+					while (tbl.rows.length > 1)
+						tbl.deleteRow(1);
+					
+					tr = tbl.insertRow(-1);
+					max = 0 ;
+					first = 0 ;
+					for (io = 0; io < blen; io++) {
+						bm = bx.substr(io, 1) ;
+						if ( bm == "1" )
+						{
+							if ( max >= 10 )
+							{
+								row2 = tr.insertCell(-1);
+								if ( first == 0 )
+								{
+									row2.innerHTML = '<input type="button" align="right" id="selectc" class="cbi-button cbi-button-apply" value="<%:Select All%>" onclick="return selectcell(this)" />'
+									first = 1 ;
+									row2.style.width = '10%' ;
+									row2 = tr.insertCell(-1);
+									wd = 100-(max*5) - 10 ;
+								}
+								else
+								{
+									wd = 100-(max*5) ;
+								}
+								row2.style.width = "'" + wd.toString() + "%'" ;
+								tr = tbl.insertRow(-1);
+								max = 0 ;
+							}
+							tr.className = 'cbi-section-table-row cbi-rowstyle-' + (((io + ix) % 2) + 1) ;
+							dex = io+1 ;
+							row = tr.insertCell(-1);
+							row.innerHTML = '<div align="right"><strong>B' + dex.toString() + '</strong></div>' ;
+							row.style.width = '3%' ;
+							row1 = tr.insertCell(-1);
+							row1.innerHTML = '<div align="bottom"><input type="checkbox" id="cb'+ dex.toString() +'" onclick="selectbnd(this)" /></div>'
+							row1.style.width = '2%' ;
+							max = max + 1 ;
+						}
+					}
+					row2 = tr.insertCell(-1);
+					if ( first == 0 )
+					{
+						row2.innerHTML = '<input type="button" align="right" id="selectc" class="cbi-button cbi-button-apply" value="<%:Select All%>" onclick="return selectcell(this)" />'
+						first = 1 ;
+						row2.style.width = '10%' ;
+						row2 = tr.insertCell(-1);
+						wd = 100-(max*5) - 10 ;
+					}
+					else
+					{
+						wd = 100-(max*5) ;
+					}
+					row2.style.width = "'" + wd.toString() + "%'" ;
+
+					bndstr = rv.bndstr ;
+					blen = bndstr.length ;
+					
+					for (i = 0; i < blen; i++) {
+						bm = bndstr.substr(i, 1) ;
+						checkbox[i+1] = 0;
+						if ( bm == "1" )
+						{
+							dex = i+1 ;
+							idc = 'cb' + dex.toString() ;
+							
+							myEle = document.getElementById(idc);
+							if(myEle){
+								document.getElementById(idc).checked = true ;
+								checkbox[i+1] = 1;
+							}
+						}
+						chkbox[i+1] = parseInt(bm) ; 
+					}	
+					
+					document.getElementById("dym1").style.display = "";
+					
+					//bndid = rv.bid ;
+					bndb1 = rv.b1 ;
+					bndb2 = rv.b2 ;
+					indx = rv.indx ;
+					caindx = rv.indx ;
+					
+					if ( indx != 0 )
+					{
+						ix = -1;
+						j = 1;
+						tbl = document.getElementById('dym2');
+						while (tbl.rows.length > 1)
+							tbl.deleteRow(1);
+							
+						cnt = 0 ;
+						tr = tbl.insertRow(-1);			
+						for (i = 0; i < indx; i++) {
+							bndid[i] = "b" + bndb1[i] + "b" + bndb2[i] ;
+							if ( cnt > 9 )
+							{
+								row = tr.insertCell(-1);
+								row.innerHTML = '&nbsp;'
+								row.style.width = '46%' ;
+								tr = tbl.insertRow(-1);
+								cnt = 0 ;
+							}
+							row = tr.insertCell(-1);
+							row.innerHTML = '<div align="left" id="' + bndid[i] + '">B' + bndb1[i] + '+B' + bndb2[i] + '</div>'
+							row.style.width = '6%' ;
+							cnt = cnt + 1 ;
+						}
+						
+						for ( jo = 0; jo < caindx; jo++ ) {
+							b1 = bndb1[jo] ;
+							b1x = b1.toString();
+							b2 = bndb2[jo] ;
+							b2x = b2.toString();
+							document.getElementById(bndid[jo]).style.fontWeight = "normal" ;
+							if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 )
+							{
+								document.getElementById(bndid[jo]).style.fontWeight = "bold" ;
+							}
+						}
+						
+						document.getElementById("dym2").style.display = "";
+						
+						bndb31 = rv.b31 ;
+						bndb32 = rv.b32 ;
+						bndb33 = rv.b33 ;
+						indx3 = rv.indx3 ;
+						caindx3 = rv.indx3 ;
+						if ( indx3 != 0 )
+						{
+							ix = -1;
+							j = 1;
+							tbl = document.getElementById('dym3');
+							while (tbl.rows.length > 1)
+								tbl.deleteRow(1);
+								
+							cnt = 0 ;
+							tr = tbl.insertRow(-1);			
+							for (i = 0; i < indx3; i++) {
+								bndid3[i] = "b" + bndb31[i] + "b" + bndb32[i] + "b" + bndb33[i] ;
+								if ( cnt > 7 )
+								{
+									row = tr.insertCell(-1);
+									row.innerHTML = '&nbsp;'
+									row.style.width = '28%' ;
+									tr = tbl.insertRow(-1);
+									cnt = 0 ;
+								}
+								row = tr.insertCell(-1);
+								row.innerHTML = '<div align="left" id="' + bndid3[i] + '">B' + bndb31[i] + '+B' + bndb32[i] + '+B' + bndb33[i] + '</div>'
+								row.style.width = '9%' ;
+								cnt = cnt + 1 ;
+							}
+							
+							for ( jo = 0; jo < caindx3; jo++ ) {
+								b1 = bndb31[jo] ;
+								b1x = b1.toString();
+								b2 = bndb32[jo] ;
+								b2x = b2.toString();
+								b3 = bndb33[jo] ;
+								b3x = b3.toString();
+								document.getElementById(bndid3[jo]).style.fontWeight = "normal" ;
+								if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 && checkbox[b3x] == 1 )
+								{
+									document.getElementById(bndid3[jo]).style.fontWeight = "bold" ;
+								}
+							}
+							
+							//document.getElementById("dym3").style.display = "";
+							document.getElementById("tab9").style.display = "none";
+							document.getElementById("tab14").style.display = "";
+						}
+					
+					}
+					else
+					{
+						document.getElementById("tab8").style.display = "none";
+						document.getElementById("tab9").style.display = "none";
+						document.getElementById("tab11").style.display = "none";
+						document.getElementById("tab14").style.display = "none";
+					}
+					
+					if ( chnge == 0 )
+					{
+						bnds = "1" ;
+					}
+					else
+					{
+						chnge = chnge - 1 ;
+					}
+				}
+			}
+			else
+			{
+				document.getElementById("tab5").style.display = "none";
+				document.getElementById("tab6").style.display = "none";
+				document.getElementById("tab7").style.display = "none";
+				document.getElementById("tab8").style.display = "none";
+				document.getElementById("tab9").style.display = "none";
+				document.getElementById("tab11").style.display = "none";
+				document.getElementById("tab12").style.display = "none";
+				document.getElementById("tab10").style.display = "none";
+				document.getElementById("tab14").style.display = "none";
+				document.getElementById("tab13").style.display = "";
+				//
+				// set to nil for tutorial link
+				//
+				document.getElementById("tutbnd").style.display = "none";
+			}
 		}
-	); 
+	);
 
 	function modemtoggle(btn)
 	{
+		bnds = "0" ;
+		chnge = 1 ;
 		btn.disabled = true;
 		btn.value    = '<%:Changing...%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "change_misc")%>',
@@ -242,6 +554,7 @@
 			{
 				btn.disabled = false;
 				btn.value    = '<%:Next Modem%>';
+				bnds = "0" ;
 			}
 		);
 
@@ -250,6 +563,8 @@
 
 	function modemtoggledn(btn)
 	{
+		bnds = "0" ;
+		chnge = 1 ;
 		btn.disabled = true;
 		btn.value    = '<%:Changing...%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "change_miscdn")%>',
@@ -258,6 +573,7 @@
 			{
 				btn.disabled = false;
 				btn.value    = '<%:Prev Modem%>';
+				bnds = "0" ;
 			}
 		);
 
@@ -325,7 +641,7 @@
 		return false;
 	}
 
-	function sndcmd(event) 
+	function sndcmd(event)
 	{
 		var x = event.key;
     		if (x == "Enter")
@@ -388,6 +704,9 @@
 			case "3":
 				nmode=document.getElementById("net2").value;
 				break;
+			case "4":
+				nmode=document.getElementById("net4").value;
+				break;
 		}
 		document.getElementById("netmode").innerHTML = "Changing Mode ...";
 		document.getElementById("apply1").value="Applying Change";
@@ -404,6 +723,181 @@
 
 		return false;
 	}
+	
+	function selectcell(btn)
+	{
+		if ( selectall == 1 )
+		{
+			btn.value    = '<%:Select None%>';
+			selectall = 0 ;
+			check = true ;
+			
+		}else
+		{
+			btn.value    = '<%:Select All%>';
+			selectall = 1 ;
+			check = false ;
+		}
+		for (io = 0; io < blen; io++) {
+			bm = bx.substr(io, 1) ;
+			if ( bm == "1" )
+			{
+				dex = io +1 ;
+				cellid = "cb" + dex.toString() ;
+				document.getElementById(cellid).checked = check ;
+				checkbox[dex] = 0 ;
+				if ( check == true )
+				{
+					checkbox[dex] = 1 ;
+				}
+			}
+		}
+		if ( caindx > 0 )
+		{
+			for ( jo = 0; jo < caindx; jo++ ) {
+				b1 = bndb1[jo] ;
+				b1x = b1.toString();
+				b2 = bndb2[jo] ;
+				b2x = b2.toString();
+				document.getElementById(bndid[jo]).style.fontWeight = "normal" ;
+				if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 )
+				{
+					document.getElementById(bndid[jo]).style.fontWeight = "bold" ;
+				}
+			}
+		}
+		if ( caindx3 > 0 )
+		{
+			for ( jo = 0; jo < caindx3; jo++ ) {
+				b1 = bndb31[jo] ;
+				b1x = b1.toString();
+				b2 = bndb32[jo] ;
+				b2x = b2.toString();
+				b3 = bndb33[jo] ;
+				b3x = b3.toString();
+				document.getElementById(bndid3[jo]).style.fontWeight = "normal" ;
+				if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 && checkbox[b3x] == 1 )
+				{
+					document.getElementById(bndid3[jo]).style.fontWeight = "bold" ;
+				}
+			}
+		}
+		return false;
+	}
+	
+	function scanbnd()
+	{
+		s = " " ;
+		document.getElementById("bndtxt").value="Cell Scanner Start ...";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "send_scancmd")%>',
+			{ set: s },
+			function(x, rv)
+			{
+				document.getElementById("bndtxt").value=rv.result;
+			}
+		);
+
+		return false;
+	}
+	
+	function lockbnd()
+	{
+		rstr = "" ;
+		for ( jo = blen; jo > 0; jo-- ) {
+			rstr = checkbox[jo].toString() + rstr ;
+		}
+		if ( confirm("Modem will be restarted after band change\nContinue?") )
+		{
+			var hexa = parseInt(rstr, 2).toString(16);
+			//document.getElementById("bndtxt").value=rstr;
+			hlen = hexa.length ;
+			while ( hlen < 20 )
+			{
+				hexa = "0" + hexa ;
+				hlen = hexa.length ;
+			}
+			s = rstr ;
+			//document.getElementById("bndtxt").value=hexa;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "send_lockcmd")%>',
+				{ set: s },
+				function(x, rv)
+				{
+				}
+			);
+		}
+		
+		return false;
+	}
+	
+	function selectbnd(btn)
+	{
+		id = btn.id ;
+		band = id.substr(2) ;
+		
+		bindx = parseInt(band) ;
+		chk = document.getElementById(id).checked ;
+		checkbox[bindx] = 0 ;
+		if ( chk == true )
+		{
+			checkbox[bindx] = 1 ;
+		}
+		
+		if ( caindx > 0 )
+		{
+			for ( jo = 0; jo < caindx; jo++ ) {
+				b1 = bndb1[jo] ;
+				b1x = b1.toString();
+				b2 = bndb2[jo] ;
+				b2x = b2.toString();
+				document.getElementById(bndid[jo]).style.fontWeight = "normal" ;
+				if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 )
+				{
+					document.getElementById(bndid[jo]).style.fontWeight = "bold" ;
+				}
+			}
+		}
+		if ( caindx3 > 0 )
+		{
+			for ( jo = 0; jo < caindx3; jo++ ) {
+				b1 = bndb31[jo] ;
+				b1x = b1.toString();
+				b2 = bndb32[jo] ;
+				b2x = b2.toString();
+				b3 = bndb33[jo] ;
+				b3x = b3.toString();
+				document.getElementById(bndid3[jo]).style.fontWeight = "normal" ;
+				if ( checkbox[b1x] == 1 && checkbox[b2x] == 1 && checkbox[b3x] == 1 )
+				{
+					document.getElementById(bndid3[jo]).style.fontWeight = "bold" ;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	function showca(btn)
+	{
+		if ( sca == 0 )
+		{
+			btn.value = "Show 2xCA"
+			document.getElementById("tab9").style.display = "";
+			document.getElementById("tab8").style.display = "none";
+			document.getElementById("dym3").style.display = "";
+			document.getElementById("dym2").style.display = "none";
+			sca = 1 ;
+		}
+		else
+		{
+			btn.value = "Show 3xCA"
+			document.getElementById("tab8").style.display = "";
+			document.getElementById("tab9").style.display = "none";
+			document.getElementById("dym2").style.display = "";
+			document.getElementById("dym3").style.display = "none";
+			sca = 0 ;
+		}
+		return false;
+	}
 
 //]]></script>
 
@@ -411,6 +905,13 @@
 <div class="cbi-map" id="cbi-misc">
 <h2><a id="content" name="content">Miscellaneous Modem Features</a></h2>
 <div class="cbi-map-descr">A Collection of Modem Features</div>
+<head>
+     <style>
+      input {
+        vertical-align: bottom;
+      }
+    </style>
+</head>
 <fieldset class="cbi-section" id="cbi-modi">
 	<legend>Current Modem</legend>
 	<table width="550"  border="0">
@@ -462,13 +963,106 @@
 	<table id="cmdtxt" width="700"  border="0" style="display:table;">
   	<tr>
     		<td width="100%">
-		<textarea readonly="readonly" name="attxt" id="attxt" rows="6" style="width: 600px;" maxlength="160"></textarea> 
+		<textarea readonly="readonly" name="attxt" id="attxt" rows="6" style="width: 600px;" maxlength="160"></textarea>
 		</td>
 	</tr>
 	</table>
 
 </fieldset>
 
+<fieldset class="cbi-section" id="cbi-mode">
+	<legend>Cellular Bands</legend>
+	<table width="500" border="0" id ="tab10">
+	<tr>
+		<td width="50%">This section is used to lock the modem to certain bands.
+		</td>
+		<td width="50%">&nbsp;</td>
+	</tr>
+	</table>
+	
+	<table width="500" border="0" id ="tab13">
+	<tr>
+		<td width="25%">No Modem or Band Locking not implemented for this modem.
+		</td>
+		<td width="25%"><button type=“reset” id="tutbnd" align="left"style="font-size : 20px; width: 100%; height: 100px;"><a href="<%=luci.dispatcher.build_url("admin/modem/block")%>">Click for Band Locking Tutorial</a></button>
+		</td>
+		<td width="50%">&nbsp;</td>
+	</tr>
+	</table>
+	
+	<table width="800"  border="0" id="dym1">
+  	<tr>
+	</tr>
+	</table>
+	
+	<table width="700" border="0" id="tab6">
+	<tr>
+		<td width="12%">&nbsp;</td>
+		<td width="20%"><input type="submit" id="setbnd" class="cbi-button cbi-button-apply" value="<%:Lock Modem to Selected Bands%>" onclick="return lockbnd()" /></td>
+		<td width="68%">&nbsp;</td>
+		</tr>
+	</table>
+	
+	<table width="700" border="0" id="tab12">
+	<tr>
+		<td>&nbsp;</td>
+		</tr>
+	</table>
+	
+	<table width="700" border="0" id="tab14">
+	<tr>
+		<td width="10%"><input type="submit" id="shwca" class="cbi-button cbi-button-apply" value="<%:Show 3xCA%>" onclick="return showca(this)" /></td>
+		<td width="90%">&nbsp;</td>
+		</tr>
+	</table>
+	
+	<table width="800"  border="0" id="tab8">
+  	<tr>
+    	<td width="20%"><div align="left"><strong>2 x Carrier Aggregation</strong></div></td>
+	</tr>
+	</table>
+	
+	<table width="800"  border="0" id="dym2">
+  	<tr>
+	</tr>
+	</table>
+	
+	<table width="800"  border="0" id="tab9">
+  	<tr>
+    	<td width="20%"><div align="left"><strong>3 x Carrier Aggregation</strong></div></td>
+	</tr>
+	</table>
+	
+	<table width="800"  border="0" id="dym3">
+  	<tr>
+	</tr>
+	</table>
+	
+	<table width="700" border="0" id="tab11">
+	<tr>
+		<td>&nbsp;</td>
+		</tr>
+	</table>
+
+	
+	<table width="700" border="0" id="tab7">
+	<tr>
+		<td width="8%"><input type="submit" id="sendbnd" class="cbi-button cbi-button-apply" value="<%:Scan%>" onclick="return scanbnd()" /></td>
+		<td width="4%">&nbsp;</td>
+		<td width="20%"><div align="left"><strong>Scan to Find Bands Avaliable in Area</strong></div></td>
+		<td width="68%">&nbsp;</td>
+		</tr>
+	</table>
+
+	<table id="tab5" width="700"  border="0" style="display:table;">
+  	<tr>
+    		<td width="100%">
+		<textarea readonly="readonly" name="bndtxt" id="bndtxt" rows="6" style="width: 600px;" maxlength="160"></textarea>
+		</td>
+	</tr>
+	</table>
+</fieldset>
+	
 <fieldset class="cbi-section" id="cbi-mode">
 	<legend>Cellular Mode</legend>
 	<table width="550"  border="0">
@@ -502,6 +1096,12 @@
 			<option value="5"><%:3G Only%></option>
 			<option value="6"><%:4G Preferred%></option>
 			<option value="7"><%:4G Only%></option>
+		</select>
+		<select style="visibility:hidden;width:auto" name="net_mode" id="net4">
+			<option value="1" selected="selected"><%:Automatic%></option>
+			<option value="7"><%:4G Only%></option>
+			<option value="8"><%:4G & 5G : NSA Mode%></option>
+			<option value="9"><%:5G Only : SA Mode%></option>
 		</select>
 		</td>
 		<td><input style="visibility:hidden;" type="button" id="apply1" class="cbi-button cbi-button-apply" value="<%:Apply Mode Change%>" onclick="return applyc(this)" /></td>

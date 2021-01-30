@@ -59,6 +59,7 @@ build_status() {
 	echo "MBIM" >> /tmp/status$CURRMODEM.file
 	echo "-" >> /tmp/status$CURRMODEM.file
 	echo "-" >> /tmp/status$CURRMODEM.file
+	echo "-" >> /tmp/status$CURRMODEM.file
 }
 
 CURRMODEM=$1

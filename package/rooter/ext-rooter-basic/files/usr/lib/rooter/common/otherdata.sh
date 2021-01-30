@@ -43,6 +43,7 @@ MODETYPE="-"
 NETMODE="-"
 LBAND="-"
 TEMP="-"
+PCI="-"
 
 OY=$($ROOTER/gcom/gcom-locked "$COMMPORT" "otherinfo.gcom" "$CURRMODEM")
 
@@ -61,6 +62,7 @@ echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
 echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
 echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
 echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+echo 'PCI="'"$PCI"'"' >> /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

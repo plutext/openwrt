@@ -17,7 +17,7 @@ uci commit modem
 MODEMTYPE=$(uci get modem.modem$CURRMODEM.modemtype)
 COMMPORT="/dev/ttyUSB"$(uci get modem.modem$CURRMODEM.commport)
 
-#ZTE
+# ZTE
 if [ $MODEMTYPE -eq 1 ]; then
 	case $NETMODE in
 		1*)
@@ -38,7 +38,7 @@ if [ $MODEMTYPE -eq 1 ]; then
 	ATC=$ATC";+ZBANDI=0"
 fi
 
-#SIERRA
+# Sierra
 if [ $MODEMTYPE -eq 2 ]; then
 	case $NETMODE in
 		"3" )
@@ -52,7 +52,7 @@ if [ $MODEMTYPE -eq 2 ]; then
 	esac
 fi
 
-#Huawei
+# Huawei legacy
 if [ $MODEMTYPE -eq 3 ]; then
 	case $NETMODE in
                 1*)
@@ -72,7 +72,7 @@ if [ $MODEMTYPE -eq 3 ]; then
         esac
 fi
 
-#Huawei
+# Huawei LTE
 if [ $MODEMTYPE -eq 4 ]; then
 	case $NETMODE in
 		1*)
@@ -88,7 +88,7 @@ if [ $MODEMTYPE -eq 4 ]; then
 	esac
 fi
 
-#ublox
+# ublox
 if [ $MODEMTYPE -eq 5 ]; then
 	case $NETMODE in
 		1*)
@@ -107,32 +107,127 @@ if [ $MODEMTYPE -eq 5 ]; then
 			ATC="AT+CFUN=4;+URAT=4,3;+CFUN=1,1" ;;
 	esac
 fi
+
+# Quectel
 if [ $MODEMTYPE -eq 6 ]; then
+	CURRMODEM=$(uci -q get modem.general.modemnum)
+	VID=$(uci -q get modem.modem$CURRMODEM.idV)
+	PID=$(uci -q get modem.modem$CURRMODEM.idP)
+	NEWFMT=false
+	if [ "$VID" = "2c7c" ]; then
+		if [ "$PID" = "0800" ] || [ "$PID" = "0620" ]; then
+			NEWFMT=true
+		fi
+	fi
 	case $NETMODE in
 		"3")
 			ATC="AT+QCFG=\"nwscanmode\",1" ;;
 		"5")
-			ATC="AT+QCFG=\"nwscanmode\",2" ;;
+			if $NEWFMT; then
+				ATC="AT+QNWPREFCFG=\"mode_pref\",WCDMA"
+			else
+				ATC="AT+QCFG=\"nwscanmode\",2"
+			fi
+			;;
 		"7")
-			ATC="AT+QCFG=\"nwscanmode\",3" ;;
+			if $NEWFMT; then
+				ATC="AT+QNWPREFCFG=\"mode_pref\",LTE"
+			else
+				ATC="AT+QCFG=\"nwscanmode\",3"
+			fi
+			;;
+		"8")
+			ATC="AT+QNWPREFCFG=\"mode_pref\",LTE:NR5G" ;;
+		"9")
+			ATC="AT+QNWPREFCFG=\"mode_pref\",NR5G" ;;
 		*)
-			ATC="AT+QCFG=\"nwscanmode\",0" ;;
+			if $NEWFMT; then
+				ATC="AT+QNWPREFCFG=\"mode_pref\",AUTO"
+			else
+				ATC="AT+QCFG=\"nwscanmode\",0"
+			fi
+			;;
 	esac
 fi
+
+# MEIG
 if [ $MODEMTYPE -eq 7 ]; then
 	case $NETMODE in
-		"1")
-			ATC="AT+MODODR=2" ;;
 		"3")
 			ATC="AT+MODODR=3" ;;
-		"4")
-			ATC="AT+MODODR=4" ;;
 		"5")
 			ATC="AT+MODODR=1" ;;
 		"7")
 			ATC="AT+MODODR=5" ;;
 		*)
 			ATC="AT+MODODR=2" ;;
+	esac
+fi
+
+# Foxconn, Telit, etc.
+if [ $MODEMTYPE -eq 8 ]; then
+	case $NETMODE in
+		"2")
+			ATC="AT^SYSCONFIG=2,1,2,4" ;;
+		"3")
+			ATC="AT^SYSCONFIG=13,3,2,4" ;;
+		"4")
+			ATC="AT^SYSCONFIG=2,2,2,4" ;;
+		"5")
+			ATC="AT^SYSCONFIG=14,3,2,4" ;;
+		"7")
+			ATC="AT^SYSCONFIG=17,3,2,4" ;;
+		*)
+			ATC="AT^SYSCONFIG=2,0,2,4" ;;
+	esac
+fi
+
+# Fibocom
+if [ $MODEMTYPE -eq 9 ]; then
+	CURRMODEM=$(uci -q get modem.general.modemnum)
+	idP=$(uci -q get modem.modem$CURRMODEM.idP)
+	idPP=${idP:1:1}
+	if [ "$idPP" = "1" ]; then
+		case $NETMODE in
+			"7")
+				ATC="AT+GTRAT=3" ;;
+			"8")
+				ATC="AT+GTRAT=17" ;;
+			"9")
+				ATC="AT+GTRAT=14" ;;
+			*)
+				ATC="AT+GTRAT=10" ;;
+		esac
+	else
+		case $NETMODE in
+			"4")
+				ATC="AT+XACT=4,1" ;;
+			"5")
+				ATC="AT+XACT=1" ;;
+			"7")
+				ATC="AT+XACT=2" ;;
+			*)
+				ATC="AT+XACT=4,2" ;;
+		esac
+	fi
+
+fi
+
+# SIMCom
+if [ $MODEMTYPE -eq 10 ]; then
+	case $NETMODE in
+		"3")
+			ATC="AT+CNMP=13" ;;
+		"5")
+			ATC="AT+CNMP=14" ;;
+		"7")
+			ATC="AT+CNMP=38" ;;
+		"8")
+			ATC="AT+CNMP=109" ;;
+		"9")
+			ATC="AT+CNMP=71" ;;
+		*)
+			ATC="AT+CNMP=1" ;;
 	esac
 fi
 

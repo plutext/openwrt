@@ -44,6 +44,14 @@ get_sierra
 
 Oup=$(echo $O | tr 'a-z' 'A-Z')
 
+PCI="-"
+PCIx=$(echo $Oup | grep -o "!LTEINFO: .\+ INTERFREQ:" | tr " " ",")
+if [ -n "$PCIx" ]; then
+	PCI=$(echo $PCIx | cut -d, -f26 | grep -o "[0-9]\{1,3\}")
+	if [ -z "$PCI" ]; then
+		PCI="-"
+	fi
+fi
 CSQ=$(echo $O | grep -o "CSQ: [0-9]\+" | grep -o "[0-9]\+")
 [ "x$CSQ" = "x" ] && CSQ=-1
 
@@ -146,10 +154,10 @@ if [ "x$RSSI4" != "x" ]; then
 	CSQ_RSSI=$RSSI4" dBm"
 	RSRP4=$(echo $O | grep -oE "RSRP4: -[0-9]+" | grep -o "[:].\+" | grep -o "[^: ]\+")
 	if [ "x$RSRP4" != "x" ]; then
-		RSCP=$RSRP4" (RSRP)"
+		RSCP=$RSRP4
 		RSRQ4=$(echo $O | grep -oE "RSRQ: -[0-9]+" | grep -o "[:].\+" | grep -o "[^: ]\+")
 		if [ "x$RSRQ4" != "x" ]; then
-			ECIO=$RSRQ4" (RSRQ)"
+			ECIO=$RSRQ4
 		fi
 	fi
 fi
@@ -166,10 +174,8 @@ if [ "$RSCP" == "-" ]; then
 	else
 		RSCP=$(echo $RSCP | grep -o " -[0-9]\+")
 		RSCP=${RSCP%%$'\n'*}
-		RSCP=$(printf "%s (RSRP)" $RSCP)
 		ECIO=$(echo $ECIO | grep -o " -[.0-9]\+")
 		ECIO=${ECIO%%$'\n'*}
-		ECIO=$(printf "%s (RSRQ)" $ECIO)
 	fi
 fi
 
@@ -217,24 +223,27 @@ else
 	TEMP="unknown"
 fi
 
-CMODE=$(uci get modem.modem$CURRMODEM.cmode)
-if [ $CMODE = 0 ]; then
+CMODE=$(uci -q get modem.modem$CURRMODEM.cmode)
+if [ "$CMODE" = 0 ]; then
 	NETMODE="10"
 fi
 
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'PCI="'"$PCI"'"'
+	echo 'TEMP="'"$TEMP"'"'
+} > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

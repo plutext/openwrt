@@ -12,20 +12,29 @@ CURRMODEM=$1
 
 power_toggle() {
 	if [ -f "/tmp/gpiopin" ]; then
-		$ROOTER/pwrtoggle.sh 3
+		source /tmp/gpiopin
+		echo "$GPIOPIN" > /sys/class/gpio/export
+		if [ $? -eq 0 ]; then
+			$ROOTER/pwrtoggle.sh 3
+		else
+			$ROOTER/pwrtoggle.sh $CURRMODEM
+		fi
 	else
 		if [ $ACTIVE = 4 ]; then
-			# GPIO power-toggle not supported so re-bind USB driver, but only if power toggle is configured in connection monitoring
-			if [ -L /sys/bus/usb/drivers/usb/usb1 ]; then
-				if [ $(uci get modem.pinginfo1.alive) = 4 ]; then
-					$ROOTER/pwrtoggle.sh 1
-				fi
+# GPIO power-toggle not supported so re-bind USB driver, but only if power toggle is configured in connection monitoring
+			if [ $(uci -q get modem.pinginfo$CURRMODEM.alive) = 4 ]; then
+				$ROOTER/pwrtoggle.sh $CURRMODEM
 			fi
-			if [ -L /sys/bus/usb/drivers/usb/usb2 ]; then
-				if [ $(uci get modem.pinginfo2.alive) = 4 ]; then
-					$ROOTER/pwrtoggle.sh 2
-				fi
-			fi
+#			if [ -L /sys/bus/usb/drivers/usb/usb1 ]; then
+#				if [ $(uci get modem.pinginfo1.alive) = 4 ]; then
+#					$ROOTER/pwrtoggle.sh 1
+#				fi
+#			fi
+#			if [ -L /sys/bus/usb/drivers/usb/usb2 ]; then
+#				if [ $(uci get modem.pinginfo2.alive) = 4 ]; then
+#					$ROOTER/pwrtoggle.sh 2
+#				fi
+#			fi
 		fi
 	fi
 }
@@ -45,7 +54,7 @@ do_down() {
 		PROT=$(uci get modem.modem$CURRMODEM.proto)
 		if [ $PROT -eq "30" ]; then
 			CPORT=$(uci get modem.modem$CURRMODEM.commport)
-			ATCMDD="AT+CFUN=0;+CFUN=1,1"
+			ATCMDD="AT+CFUN=4;+CFUN=1,1"
 			$ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD"
 			echo "1" > /tmp/modgone
 			log "Setting Modem Removal flag"
@@ -63,10 +72,11 @@ do_down() {
 	esac
 }
 
-
 CURSOR="-"
 
 log "Start Connection Monitor for Modem $CURRMODEM"
+
+sleep 30
 
 while [ 1 = 1 ]; do
 	ACTIVE=$(uci get modem.pinginfo$CURRMODEM.alive)
@@ -108,22 +118,12 @@ while [ 1 = 1 ]; do
 					echo 'MONSTAT="'"Up ($CURSOR) (using Failover)"'"' > /tmp/monstat$CURRMODEM
 				fi
 				sleep 20
-
 			else
 				# check to see if modem iface has an IP address, if not try a reconnect/power toggle
                         	if [ -z "$(ifconfig ${INTER} 2>&1 | sed '/inet\ /!d;s/.*r://g;s/\ .*//g')" ]; then
                                 	do_down " (no IP address)"
                         	fi
-				MENABLE=$(uci get mwan3.wan$INTERF.enabled)
-				MSCR=$(uci get mwan3.wan$INTERF.dwnscript)
-				if [ $MENABLE = "1" -a $MSCR != nil -a -e $MSCR ]; then
-					if [ -e /tmp/mdown$CURRMODEM ]; then
-						do_down " (using Load Balance)"
-					else
-						echo 'MONSTAT="'"Up ($CURSOR) (using Load Balance)"'"' > /tmp/monstat$CURRMODEM
-					fi
-					sleep $(uci get mwan3.wan${INTERF}.interval)
-				else
+
 					UPDWN="0"
 					host_up_count=0
 					score_up=$UP
@@ -167,7 +167,7 @@ while [ 1 = 1 ]; do
 						echo 'MONSTAT="'"UP ($CURSOR) (using Ping Test)"'"' > /tmp/monstat$CURRMODEM
 					fi
 					sleep $INTERVAL
-				fi
+
 			fi
 		fi
 		if [ $CURSOR = "-" ]; then

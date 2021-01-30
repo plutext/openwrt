@@ -13,11 +13,6 @@
 		led-upgrade = &led_status;
 	};
 
-	memory@0 {
-		device_type = "memory";
-		reg = <0x0 0x1c000000>, <0x20000000 0x4000000>;
-	};
-
 	chosen {
 		bootargs = "console=ttyS0,115200";
 	};
@@ -45,6 +40,14 @@
 		led_status: status {
 			label = "zbt-wg3526:green:status";
 			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
+		};
+		signal {
+			label = "zbt-wg3526:green:signal";
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		};
+		globe {
+			label = "zbt-wg3526:green:globe";
+			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

@@ -15,8 +15,8 @@ end
 
 d1 = m:section(TypedSection, "timezone", " ")
 
-o1 = d1:option(DummyValue, "_systime", translate("Local Time : "))
-o1.template = "admin_system/clock_status"
+--o1 = d1:option(DummyValue, "_systime", translate("Local Time : "))
+--o1.template = "admin_system/clock_status"
 
 o = d1:option(DummyValue, "zonename", translate("Timezone : "), translate("Be sure to set your Timezone correctly in System->System"))
 

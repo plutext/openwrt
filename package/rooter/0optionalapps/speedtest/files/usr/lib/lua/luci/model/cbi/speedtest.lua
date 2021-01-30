@@ -24,7 +24,6 @@ dur.default = "15"
 host = s:option(ListValue, "host", translate("NetPerf Host :"), translate("Server to use for speed test"))
 host.rmempty = true
 host:value("netperf.bufferbloat.net", "US East (netperf.bufferbloat.net)")
-host:value("netperf-west.bufferbloat.net", "US West (netperf-west.bufferbloat.net)")
 host:value("netperf-eu.bufferbloat.net", "Europe (netperf-eu.bufferbloat.net)")
 host.default = "netperf.bufferbloat.net"
 

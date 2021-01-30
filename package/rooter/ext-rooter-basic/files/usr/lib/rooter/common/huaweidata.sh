@@ -52,10 +52,10 @@ process_huawei() {
 
 	LTERSRP=$(echo "$O" | awk -F[,\ ] '/^\^LTERSRP:/ {print $2}')
 	if [ "x$LTERSRP" != "x" ]; then
-		RSCP=$LTERSRP" (RSRP)"
+		RSCP=$LTERSRP
 		LTERSRP=$(echo "$O" | awk -F[,\ ] '/^\^LTERSRP:/ {print $3}')
 		if [ "x$LTERSRP" != "x" ]; then
-			ECIO=$LTERSRP" (RSRQ)"
+			ECIO=$LTERSRP
 		else
 			ECIO=`expr $RSCP - $CSQX`
 		fi
@@ -89,12 +89,16 @@ process_huawei() {
 			fi
 
 		fi
-		echo "$LBAND" > /tmp/lbandvar$CURRMODEM
-		echo "$CHANNEL" >> /tmp/lbandvar$CURRMODEM
+		{
+			echo "$LBAND"
+			echo "$CHANNEL"
+		} > /tmp/lbandvar$CURRMODEM
 	done
 	if [ -e /tmp/lbandvar$CURRMODEM ]; then
-		read LBAND < /tmp/lbandvar$CURRMODEM
-		CHANNEL=$(tail -n 1 /tmp/lbandvar$CURRMODEM)
+		{
+			read LBAND
+			read CHANNEL
+		} < /tmp/lbandvar$CURRMODEM
 		rm /tmp/lbandvar$CURRMODEM
 	fi
 	if [ -z "$LBAND" ]; then
@@ -220,6 +224,7 @@ LBAND="-"
 MODETYPE="-"
 NETMODE="-"
 TEMP="-"
+PCI="-"
 
 OY=$($ROOTER/gcom/gcom-locked "$COMMPORT" "huaweiinfo.gcom" "$CURRMODEM")
 
@@ -227,19 +232,22 @@ fix_data
 process_csq
 process_huawei
 
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'PCI="'"$PCI"'"'
+	echo 'TEMP="'"$TEMP"'"'
+} > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

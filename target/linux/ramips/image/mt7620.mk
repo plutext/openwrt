@@ -55,7 +55,7 @@ define Device/alfa-network_r36m-e4g
   DTS := R36M-E4G
   IMAGE_SIZE := 16064k
   DEVICE_TITLE := ALFA Network R36M-E4G
-  DEVICE_PACKAGES := kmod-i2c-ralink kmod-usb2 kmod-usb-ohci uboot-envtools uqmi
+  DEVICE_PACKAGES := kmod-i2c-ralink kmod-usb2 kmod-usb-ohci uboot-envtools
 endef
 TARGET_DEVICES += alfa-network_r36m-e4g
 
@@ -63,7 +63,7 @@ define Device/alfa-network_tube-e4g
   DTS := TUBE-E4G
   IMAGE_SIZE := 16064k
   DEVICE_TITLE := ALFA Network Tube-E4G
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci uboot-envtools uqmi \
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci uboot-envtools \
 	-iwinfo -kmod-rt2800-soc -wpad-basic
 endef
 TARGET_DEVICES += alfa-network_tube-e4g

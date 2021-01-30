@@ -3,29 +3,27 @@
 ROOTER=/usr/lib/rooter
 
 log() {
-	logger -t "USB730 Data" "$@"
+	logger -t "Novatel Data" "$@"
 }
 
 CURRMODEM=$1
 COMMPORT=$2
 
 fix_data() {
-	OY=$(echo $OY)
+	OY=$(echo $OY | tr 'a-z' 'A-Z')
 	O=$($ROOTER/common/processat.sh "$OY")
-	O=$(echo $O" " | tr "$" "+")
+	O=$(echo $O" ")
+	O=$(echo "${O//[\"]/}")
 }
 
 process_csq() {
-	CSQ=$(echo "$O" | awk -F[,\ ] '/^\+CSQ:/ {print $2}')
-	[ "x$CSQ" = "x" ] && CSQ=-1
-	if [ $CSQ -ge 0 -a $CSQ -le 31 ]; then
-		CSQ_PER=$(($CSQ * 100/31))
-		CSQ_RSSI=$((2 * CSQ - 113))
-		CSQX=$CSQ_RSSI
-		[ $CSQ -eq 0 ] && CSQ_RSSI="<= "$CSQ_RSSI
-		[ $CSQ -eq 31 ] && CSQ_RSSI=">= "$CSQ_RSSI
-		CSQ_PER=$CSQ_PER"%"
-		CSQ_RSSI=$CSQ_RSSI" dBm"
+CSQ=$(echo $OY | grep -o "+CSQ: [0-9]\{1,2\}" | grep -o "[0-9]\{1,2\}")
+	if [ "$CSQ" = "99" ]; then
+		CSQ=""
+	fi
+	if [ -n "$CSQ" ]; then
+		CSQ_PER=$(($CSQ * 100/31))"%"
+		CSQ_RSSI=$((2 * CSQ - 113))" dBm"
 	else
 		CSQ="-"
 		CSQ_PER="-"
@@ -41,10 +39,12 @@ RSCP="-"
 ECIO1=" "
 RSCP1=" "
 MODE="-"
-MODETYPE="-"
+MODTYPE="-"
 NETMODE="-"
 LBAND="-"
+CHANNEL="-"
 TEMP="-"
+PCI="-"
 
 OY=$($ROOTER/gcom/gcom-locked "$COMMPORT" "novatelinfo.gcom" "$CURRMODEM")
 
@@ -53,14 +53,14 @@ process_csq
 
 DEG=$(echo $O" " | grep -o "+NWDEGC: .\+ OK " | tr " " ",")
 TMP=$(echo $DEG | cut -d, -f2)
-if [ ! -z "$TMP" ]; then
-	TEMP=$TMP"°C"
+if [ -n "$TMP" ]; then
+	TEMP=$TMP$(printf "\xc2\xb0")"C"
 fi
 
 MODE="-"
-PSRAT=$(echo $O" " | grep -o "+NWRAT: .\+ OK " | tr " " ",")
+PSRAT=$(echo $O" " | grep -o "\$NWRAT: .\+ OK " | tr " " ",")
 TECH=$(echo $PSRAT | cut -d, -f4)
-if [ ! -z "$TECH" ]; then
+if [ -n "$TECH" ]; then
 	case "$TECH" in
 		"1"|"2"|"3")
 			MODE="UMTS"
@@ -70,19 +70,18 @@ if [ ! -z "$TECH" ]; then
 			;;
 		"7"|"8"|"9")
 			MODE="LTE"
-			RSRP=$(echo $O" " | grep -o "+VZWRSRP: .\+ OK " | tr " " ",")
-			TMP=$(echo $RSRP | cut -d, -f4)
-			if [ ! -z "$TMP" ]; then
-				temp="${TMP%\"}"
-				temp="${temp#\"}"
-				RSCP=$temp" (RSRP)"
+			VZWRSRP=$(echo "$O" | grep -o "VZWRSRP: [0-9]\{1,3\},[0-9]\{1,7\},[-.0-9]\{1,7\}" | tr " " ",")
+			PCI=$(echo "$VZWRSRP" | cut -d, -f2)
+			CHANNEL=$(echo "$VZWRSRP" | cut -d, -f3)
+			LBAND=$("$ROOTER/chan2band.sh" "$CHANNEL")
+			TMP=$(echo "$VZWRSRP" | cut -d, -f4)
+			if [ -n "$TMP" ]; then
+				RSCP=$TMP
 			fi
-			RSRQ=$(echo $O" " | grep -o "+VZWRSRQ: .\+ OK " | tr " " ",")
-			TMP=$(echo $RSRQ | cut -d, -f4)
-			if [ ! -z "$TMP" ]; then
-				temp="${TMP%\"}"
-				temp="${temp#\"}"
-				ECIO=$temp" (RSRQ)"
+			VZWRSRQ=$(echo "$O" | grep -o "VZWRSRQ: [0-9]\{1,3\},[0-9]\{1,7\},[-.0-9]\{1,7\}" | tr " " ",")
+			TMP=$(echo "$VZWRSRQ" | cut -d, -f4)
+			if [ -n "$TMP" ]; then
+				ECIO=$TMP
 			fi
 			;;
 		*)
@@ -91,19 +90,22 @@ if [ ! -z "$TECH" ]; then
 	esac
 fi
 
-
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'TEMP="'"$TEMP"'"'
+	echo 'PCI="'"$PCI"'"'
+} > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

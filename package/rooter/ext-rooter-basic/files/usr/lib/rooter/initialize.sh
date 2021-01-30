@@ -54,6 +54,12 @@ firstboot() {
 	fi
 	uci set system.@system[-1].cronloglevel="9"
 	uci commit system
+	
+	AP=$(uci -q get profile.default.apn)
+	if [ -z "$AP" ]; then
+		uci set profile.default.apn="internet"
+		uci commit profile
+	fi
 
 	log "ROOter First Boot finalized"
 
@@ -86,6 +92,7 @@ uci commit modem
 source /etc/openwrt_release
 rm -f /etc/openwrt_release
 if [ -e /etc/custom ]; then
+	lua $ROOTER/customname.lua
 	DISTRIB_DESCRIPTION=$(uci get modem.Version.ver)
 	DISTRIB_REVISION=" "
 else
@@ -134,7 +141,7 @@ ETHN=1
 BASEPORT=0
 WDMN=0
 if 
-	ifconfig eth1 2>/dev/null
+	ifconfig eth1 &>/dev/null
 then
 	if [ -e "/sys/class/net/eth1/device/bInterfaceProtocol" ]; then
 		ETHN=1
@@ -156,7 +163,7 @@ uci set modem.general.modemnum=1
 uci set modem.general.smsnum=1
 uci set modem.general.miscnum=1
 
-OPING=$(uci get modem.ping.alive)
+OPING=$(uci -q get modem.ping.alive)
 if [ ! -z $OPING ]; then
 	uci delete modem.ping
 fi
@@ -183,7 +190,7 @@ while [ $COUNTER -le $MODCNT ]; do
 	rm -f $ROOTER_LINK/create_proto$COUNTER
 	$ROOTER/signal/status.sh $COUNTER "No Modem Present"
 
-	uci delete network.wan$COUNTER       
+	uci -q delete network.wan$COUNTER       
 	uci set network.wan$COUNTER=interface
 	uci set network.wan$COUNTER.proto=dhcp 
 	uci set network.wan$COUNTER.metric=$COUNTER"0"
@@ -222,7 +229,7 @@ if [ -e /etc/config/failover ]; then
 	fi
 fi
 
-PRO=$(uci get network.wan.proto)
+PRO=$(uci -q get network.wan.proto)
 if [ ! -z $PRO ]; then
 	uci set network.wan.metric="1"
 fi
@@ -259,8 +266,6 @@ fi
 
 lua $ROOTER/gpiomodel.lua
 
-lua /usr/lib/custom/model.lua
-
 HO=$(uci get system.@system[-1].hostname)
 if [ $HO = "OpenWrt" ]; then
 	uci set system.@system[-1].hostname="ROOter"
@@ -282,33 +287,24 @@ fi
 #
 # Added modems to various drivers
 #
-#echo "2001 7e35" > /sys/bus/usb-serial/drivers/option1/new_id
-#echo "2001 7e35" > /sys/bus/usb/drivers/qmi_wwan/new_id
 #source /etc/flash
 #if [ "$FLASH" = "4" ]; then
-#	echo "1199 9071" > /sys/bus/usb-serial/drivers/option1/new_id
-#	echo "1199 9079" > /sys/bus/usb-serial/drivers/option1/new_id
-#	echo "1199 9041" > /sys/bus/usb-serial/drivers/option1/new_id
 #fi
 #echo "413c 81b6" > /sys/bus/usb-serial/drivers/option1/new_id
-#echo "1e0e 9001" > /sys/bus/usb/drivers/qmi_wwan/new_id
 echo "1546 1146" > /sys/bus/usb-serial/drivers/option1/new_id
 echo "106c 3718" > /sys/bus/usb-serial/drivers/option1/new_id
 #echo "1199 9091" > /sys/bus/usb-serial/drivers/option1/new_id
-#echo "2c7c 0306 ff" > /sys/bus/usb-serial/drivers/option1/new_id
-echo "19d2 1476" > /sys/bus/usb-serial/drivers/option1/new_id
+# recently found models:
+#echo "2001 7e3d ff 2001 7e35" > /sys/bus/usb/drivers/qmi_wwan/new_id
+#echo "1508 1001 ff 2c7c 0125" > /sys/bus/usb/drivers/qmi_wwan/new_id
+#echo "03f0 0a57" > /sys/bus/usb-serial/drivers/option1/new_id
 
-#echo "1199 68a2" > /sys/bus/usb-serial/drivers/option1/new_id
-#echo "1199 68a2" > /sys/bus/usb/drivers/qmi_wwan/new_id
-#echo "1199 68c0" > /sys/bus/usb-serial/drivers/option1/new_id
-#echo "1199 68c0" > /sys/bus/usb/drivers/qmi_wwan/new_id
-
-# end of booup
+# end of bootup
 echo "0" > /tmp/bootend.file
 
 /etc/init.d/dnsmasq restart
 
 chown -R root:root /etc/dropbear/
 chmod 700 /etc/dropbear/
-chmod 644 /etc/dropbear/authorized_keys
+chmod 644 /etc/dropbear/authorized_keys 2>/dev/null
 

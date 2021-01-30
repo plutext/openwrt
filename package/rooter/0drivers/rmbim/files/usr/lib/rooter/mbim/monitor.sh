@@ -2,6 +2,8 @@
 
 . /lib/functions.sh
 
+ROOTER_LINK="/tmp/links"
+
 log() {
 	logger -t "MBIM Monitor" "$@"
 }

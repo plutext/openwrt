@@ -60,8 +60,12 @@ decode_band() {
 		SLBV="66"
 	elif [ "$SLBV" -eq 162 ]; then
 		SLBV="250"
-	else
+	elif [ "$SLBV" -eq 163 ]; then
 		SLBV="46"
+	elif [ "$SLBV" -eq 166 ]; then
+		SLBV="71"
+	else
+		SLBV="??"
 	fi
 
 }
@@ -90,6 +94,7 @@ MODTYPE="-"
 NETMODE="-"
 LBAND="-"
 TEMP="-"
+PCI="-"
 
 CSQ=$(echo $O | grep -o "CSQ: [0-9]\+" | grep -o "[0-9]\+")
 [ "x$CSQ" = "x" ] && CSQ=-1
@@ -114,7 +119,7 @@ if [ -n "$TMP" ]; then
 fi
 
 MODE="-"
-WS46=$(echo $O | grep -o "+COPS: [0-3],[0-3,\"[^\"].\+\",[027]")
+WS46=$(echo $O | grep -o "+COPS:.\+AT#RFSTS" | grep -o "+COPS: [0-3],[0-3],\"[^\"].\+\",[027]")
 TECH=$(echo $WS46 | cut -d, -f4)
 
 if [ -n "$TECH" ]; then
@@ -125,8 +130,8 @@ if [ -n "$TECH" ]; then
 			CAINFO=$(echo $O | grep -o "#CAINFO: 1.\+OK")
 			SGCELL=$(echo $O | grep -o "[#^]RFSTS: \"[ 0-9]\{6,7\}\",[0-9]\{1,5\},.\+,\"[0-9]\{15\}\",\".\+\",[0-3],[0-9]\{1,2\}")
 			if [ -n "$SGCELL" ]; then
-				RSCP=$(echo $SGCELL | cut -d, -f3)" RSRP"
-				ECIO=$(echo $SGCELL | cut -d, -f5)" RSRQ"
+				RSCP=$(echo $SGCELL | cut -d, -f3)
+				ECIO=$(echo $SGCELL | cut -d, -f5)
 				RSSI=$(echo $SGCELL | cut -d, -f4)
 				CSQ_RSSI=$(echo "$RSSI dBm")
 				CHANNEL=$(echo $SGCELL | cut -d, -f2)
@@ -142,26 +147,29 @@ if [ -n "$TECH" ]; then
 				fi
 				if [ -n "$CAINFO" ]; then
 					SCCLIST=$(echo $CAINFO | grep -o "1[2-6][0-9],[0-9]\{1,5\},[0-5],[0-9]\{1,3\},-[0-9]\+,-[0-9]\+,-[0-9]\+,[0-9]\{1,3\},2,[0-5],")
-					printf '%s\n' "$SCCLIST" | while read SCCVAL; do
-						SLBV=$(echo $SCCVAL | cut -d, -f1)
-						decode_band
-						if `echo $LBAND | grep -o "aggregated" >/dev/null 2>&1`; then
+					if [ -n "$SCCLIST" ]; then
+						printf '%s\n' "$SCCLIST" | while read SCCVAL; do
+							PCI=$(echo $SCCVAL | cut -d, -f4)
+							SLBV=$(echo $SCCVAL | cut -d, -f1)
+							decode_band
 							LBAND=$LBAND"<br />B"$SLBV
-						else
-							LBAND=$LBAND" aggregated with:<br />B"$SLBV
-						fi
-						BW=$(echo $SCCVAL | cut -d, -f3)
-						decode_bw
-						LBAND=$LBAND" (Bandwidth $BW MHz)"
-						SCHV=$(echo $SCCVAL | cut -d, -f2)
-						CHANNEL=$(echo "$CHANNEL", "$SCHV")
-						echo "$LBAND" > /tmp/lbandvar$CURRMODEM
-						echo "$CHANNEL" >> /tmp/lbandvar$CURRMODEM
-					done
+							BW=$(echo $SCCVAL | cut -d, -f3)
+							decode_bw
+							LBAND=$LBAND" (CA, Bandwidth $BW MHz)"
+							SCHV=$(echo $SCCVAL | cut -d, -f2)
+							CHANNEL=$(echo "$CHANNEL", "$SCHV")
+							{
+								echo "$LBAND"
+								echo "$CHANNEL"
+							} > /tmp/lbandvar$CURRMODEM
+						done
+					fi
 				fi
 				if [ -e /tmp/lbandvar$CURRMODEM ]; then
-					read LBAND < /tmp/lbandvar$CURRMODEM
-					CHANNEL=$(tail -n 1 /tmp/lbandvar$CURRMODEM)
+					{
+						read LBAND
+						read CHANNEL
+					} < /tmp/lbandvar$CURRMODEM
 					rm /tmp/lbandvar$CURRMODEM
 				fi
 			fi
@@ -183,19 +191,22 @@ fi
 NETMODE="1"
 MODTYPE="8"
 
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'PCI="'"$PCI"'"'
+	echo 'TEMP="'"$TEMP"'"'
+}  > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 

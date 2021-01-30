@@ -10,5 +10,5 @@ log() {
 
 start_service()
 {
-	log "Remove Early Modeswitch"
+	log "Remove early Modeswitch"
 }

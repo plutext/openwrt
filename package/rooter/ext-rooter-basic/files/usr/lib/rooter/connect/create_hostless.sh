@@ -85,6 +85,19 @@ get_connect() {
 	uci commit modem
 }
 
+quebandmask() {
+	ATCMDD='AT+QCFG="band"'
+	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	log "$OX"
+	qm=$(echo $OX" " | grep "+QCFG:" | tr -d '"' | tr " " ",")
+	L1=$(echo $qm | cut -d, -f5)
+	GW=$(echo $qm | cut -d, -f4)
+	L2="0"
+	qm=$(echo $OX" " | grep "+QCFG:" | tr -d '"' | tr " " ",")
+	uci set modem.modem$CURRMODEM.GW="$GW"
+	uci set modem.modem$CURRMODEM.L1="$L1"
+	uci set modem.modem$CURRMODEM.L2="$L2"
+}
 
 CURRMODEM=$1
 source /tmp/variable.file
@@ -104,12 +117,25 @@ fi
 if [ $idV = 19d2 -a $idP = 1476 ]; then
 	SP=2
 fi
+if [ $idV = 1410 -a $idP = 9022 ]; then
+        SP=3
+fi
 if [ $idV = 1410 -a $idP = 9032 ]; then
 	SP=3
+fi
+if [ $idV = 2cb7 -a $idP = 0105 ]; then
+	SP=4
+fi
+if [ $idV = 2c7c ]; then
+	SP=5
 fi
 if [ $SP -gt 0 ]; then
 	if [ $SP -eq 3 ]; then
 		CPORT=0
+	elif [ $SP -eq 4 ]; then
+		CPORT=2
+	elif [ $SP -eq 5 ]; then
+		CPORT=2
 	else
 		CPORT=1
 	fi
@@ -119,7 +145,11 @@ if [ $SP -gt 0 ]; then
 	uci set modem.modem$CURRMODEM.commport=$CPORT
 	uci commit modem
 	$ROOTER/sms/check_sms.sh $CURRMODEM &
-	$ROOTER/common/gettype.sh $CURRMODEM 
+	$ROOTER/common/gettype.sh $CURRMODEM
+	if [ $SP = 5 ]; then
+		quebandmask
+		uci commit modem
+	fi
 fi
 $ROOTER/connect/get_profile.sh $CURRMODEM
 
@@ -173,6 +203,10 @@ else
 fi
 uci commit modem
 
+if [ -e $ROOTER/modem-led.sh ]; then
+	$ROOTER/modem-led.sh $CURRMODEM 2
+fi
+
 if [ $SP -eq 2 ]; then
 	get_connect
 	export SETAPN=$NAPN
@@ -190,6 +224,65 @@ if [ $SP -eq 2 ]; then
 		fi
 	done
 fi
+if [ $SP -eq 4 ]; then
+	get_connect
+	export SETAPN=$NAPN
+	BRK=1
+
+	while [ $BRK -eq 1 ]; do
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "connect-fecm.gcom" "$CURRMODEM")
+		chcklog "$OX"
+		ERROR="ERROR"
+		if `echo ${OX} | grep "${ERROR}" 1>/dev/null 2>&1`
+		then
+			$ROOTER/signal/status.sh $CURRMODEM "$MAN $MOD" "Failed to Connect : Retrying"
+		else
+			BRK=0
+		fi
+	done
+fi
+if [ $SP = 5 ]; then
+	get_connect
+	if [ -n "$NAPN" ]; then
+		$ROOTER/common/lockchk.sh $CURRMODEM
+		IPVAR="IP"
+		ATCMDD="AT+CGDCONT=?"
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+		if `echo ${OX} | grep "IPV4V6" 1>/dev/null 2>&1`; then
+			IPVAR="IPV4V6"
+		fi
+		ATCMDD="AT+CGDCONT?"
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+		CGDCONT=$(echo $OX | grep -o "1,[^,]\+,[^,]\+,[^,]\+,0,0,1")
+		IPCG=$(echo $CGDCONT | cut -d, -f4)
+		if [ "$CGDCONT" != "1,\"$IPVAR\",\"$NAPN\",$IPCG,0,0,1" ]; then
+			ATCMDD="AT+CGDCONT=1,\"$IPVAR\",\"$NAPN\",,0,0,1"
+			OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+		fi
+	fi
+	ATCMDD="AT+CNMI?"
+	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	if `echo $OX | grep -o "+CNMI: [0-3],2," >/dev/null 2>&1`; then
+		ATCMDD="AT+CNMI=0,0,0,0,0"
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	fi
+	ATCMDD="AT+QINDCFG=\"smsincoming\""
+	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	if `echo $OX | grep -o ",1" >/dev/null 2>&1`; then
+		ATCMDD="AT+QINDCFG=\"smsincoming\",0,1"
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	fi
+	ATCMDD="AT+QINDCFG=\"all\""
+	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	if `echo $OX | grep -o ",1" >/dev/null 2>&1`; then
+		ATCMDD="AT+QINDCFG=\"all\",0,1"
+		OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+	fi
+	log "Quectel Unsolicited Responses Disabled"
+	$ROOTER/luci/celltype.sh $CURRMODEM
+	ATCMDD="AT+QINDCFG=\"all\",1"
+	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
+fi
 
 save_variables
 rm -f /tmp/usbwait
@@ -206,6 +299,10 @@ uci set modem.modem$CURRMODEM.ip=$wan_ip
 uci commit modem
 
 $ROOTER/log/logger "HostlessModem #$CURRMODEM Connected with IP $wan_ip"
+
+if [ -e $ROOTER/modem-led.sh ]; then
+	$ROOTER/modem-led.sh $CURRMODEM 3
+fi
 
 PROT=5
 
@@ -238,6 +335,14 @@ fi
 ln -s $ROOTER/connect/conmon.sh $ROOTER_LINK/con_monitor$CURRMODEM
 $ROOTER_LINK/con_monitor$CURRMODEM $CURRMODEM &
 
+if [ -e $ROOTER/timezone.sh ]; then
+	TZ=$(uci -q get modem.modeminfo$CURRMODEM.tzone)
+	if [ "$TZ" = "1" ]; then
+		log "Set TimeZone"
+		$ROOTER/timezone.sh &
+	fi
+fi
+	
 CLB=$(uci get modem.modeminfo$CURRMODEM.lb)
 if [ -e /etc/config/mwan3 ]; then
 	ENB=$(uci get mwan3.wan$INTER.enabled)
@@ -251,6 +356,3 @@ if [ -e /etc/config/mwan3 ]; then
 		/usr/sbin/mwan3 restart
 	fi
 fi
-
-
-

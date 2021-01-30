@@ -35,6 +35,7 @@ MODTYPE="-"
 NETMODE="-"
 LBAND="-"
 TEMP="-"
+PCI="-"
 
 CSQ=$(echo $OX | grep -o "+CSQ: .\+ +CESQ" | tr " " ",")
 CESQ=$(echo $OX | grep -o "+CESQ: .\+ +URAT" | tr " " ",")
@@ -131,7 +132,7 @@ case "$RAT" in
 		fi
 		if [ -n "$RSRP" ]; then
 			RSRP=$(($RSRP - 141))
-			RSCP=$RSRP" (RSRP)"
+			RSCP=$RSRP
 		fi
 		RSRQ=$(echo $CESQ | cut -d, -f6)
 		RSRQ=$(echo $RSRQ | grep -o "[0-9]\{1,3\}")
@@ -140,7 +141,7 @@ case "$RAT" in
 		fi
 		if [ -n "$RSRQ" ]; then
 			RSRQ=$((($RSRQ / 2) - 19))
-			ECIO=$RSRQ" (RSRQ)"
+			ECIO=$RSRQ
 		fi
 		;;
 esac
@@ -225,6 +226,7 @@ echo 'CID_NUM="'""'"' >> /tmp/signal$CURRMODEM.file
 echo 'RNC="'"$RNC"'"' >> /tmp/signal$CURRMODEM.file
 echo 'RNC_NUM="'"$RNC_NUM"'"' >> /tmp/signal$CURRMODEM.file
 echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+echo 'PCI="'"$PCI"'"' >> /tmp/signal$CURRMODEM.file
 
 if [ "$CSQ" = "-" ]; then
 	log "$OX"

@@ -8,7 +8,7 @@ log() {
 START=98
 
 start() {
-	local BTN=$(uci get system.@button[-1].button)
+	local BTN=$(uci -q get system.@button[-1].button)
 }
 
 stop() {

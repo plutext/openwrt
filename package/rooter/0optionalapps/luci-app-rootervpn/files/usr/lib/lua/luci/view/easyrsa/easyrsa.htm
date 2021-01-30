@@ -5,7 +5,7 @@
 	var dots = ".";
 	var genrate = "0";
 	
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "rsastatus")%>', null,
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "vpn", "rsastatus")%>', null,
 		function(x, rv)
 		{
 			var status = rv.status;
@@ -103,7 +103,7 @@
 			clearListBox("status");
 			select = document.getElementById("status");
 			select.options[select.options.length] = new Option("Starting Key Generation Process", 0);
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "rsagenerate")%>',
+			XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "rsagenerate")%>',
 				null,
 				function(x, rv)
 				{
@@ -114,7 +114,7 @@
 		{
 			clearListBox("status");
 			document.getElementById("upload").style.display="none";
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "rsastop")%>',
+			XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "rsastop")%>',
 				null,
 				function(x, rv)
 				{

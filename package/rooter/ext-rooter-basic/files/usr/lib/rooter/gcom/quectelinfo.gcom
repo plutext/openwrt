@@ -18,7 +18,7 @@ let t=time()+f
 gosub getresult
 if $s="^mTIMEOUT ERROR" print $s
 
-send "AT+QNWINFO^m"
+send "AT+QRSRP^m"
 let t=time()+f
 gosub getresult
 if $s="^mTIMEOUT ERROR" print $s
@@ -32,15 +32,19 @@ send "AT+QCFG=\"nwscanmode\"^m"
 let t=time()+f
 gosub getresult
 if $s="^mTIMEOUT ERROR" print $s
+if $s="^jERROR" goto qnwpref
+goto temp
 
-send "AT+QTEMP^m"
-let $p=" "
-let t=time()+2
-gosub gettemp
-
-let $s=" "
-if $p<>"^jOK" send "AT+CNMI=0,0^m" let t=time()+f gosub getresult
+:qnwpref
+send "AT+QNWPREFCFG=\"mode_pref\"^m"
+let t=time()+f
+gosub getresult
 if $s="^mTIMEOUT ERROR" print $s
+
+:temp
+send "AT+QTEMP^m"
+let t=time()+1
+gosub gettemp
 
 exit 0
 
@@ -60,7 +64,6 @@ goto getresult
 get 1 "^m" $s
 let x=len($s)
 if x>0 print $s
-if x>1 let $p=$s
 if $mid($s,0,6)="^jERROR" return
 if $mid($s,0,8)="^jCOMMAND" return
 if $mid($s,0,11)="^j+CME ERROR" return

@@ -1,5 +1,7 @@
 #!/usr/bin/lua
 
+local uci  = require "luci.model.uci".cursor()
+ 
 logfile = {}
 infile = arg[1]
 outfile = arg[2]
@@ -20,10 +22,17 @@ repeat
 	end
 until 1==0
 ifile:close()
-if i < 50 then
+
+bff = uci:get("variable", "info", "buffersize")
+if bff == nil then
+	maxs = 50
+else
+	maxs = tonumber(bff)
+end
+if i < maxs then
 	j = 1
 else
-	j = i - 49
+	j = i - maxs - 1
 end
 ofile = io.open(outfile, "w")
 for k=j,i do

@@ -19,6 +19,7 @@
 		{
 			var ss = rv.ready;
 			document.getElementById('conntype').innerHTML=rv.conntype;
+			document.getElementById('conntype').style.fontSize="initial";
 			if ( ss == "0" )
 			{
 				clearListBox("smsList");
@@ -341,6 +342,8 @@
 	{
 		btn.disabled = true;
 		btn.value    = '<%:Changing...%>';
+		document.getElementById('conntype').innerHTML='Changing Modem...';
+		document.getElementById('conntype').style.fontSize="x-large";
 		XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "change_sms")%>',
 			null,
 			function(x, rv)
@@ -357,6 +360,8 @@
 	{
 		btn.disabled = true;
 		btn.value    = '<%:Changing...%>';
+		document.getElementById('conntype').innerHTML='Changing Modem...';
+		document.getElementById('conntype').style.fontSize="x-large";
 		XHR.get('<%=luci.dispatcher.build_url("admin", "modem", "change_smsdn")%>',
 			null,
 			function(x, rv)

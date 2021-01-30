@@ -14,6 +14,7 @@ define Package/rpi3bp
   SECTION:=utils
   CATEGORY:=ROOter
   SUBMENU:=Router Specific
+  DEPENDS:=+kmod-brcmfmac
   TITLE:=Install scripts for RPI 3B+
   PKGARCH:=all
 endef

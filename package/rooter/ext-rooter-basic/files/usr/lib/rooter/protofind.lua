@@ -202,6 +202,10 @@ repeat
 			retval = 5
 			break
 		end
+		if drv[i] == "ipheth" then
+			retval = 9
+			break
+		end
 		if drv[i] == "uvcvideo" then
 			retval = 99
 			break
@@ -215,10 +219,6 @@ repeat
 				retval = 97
 				break
 			end
-		end
-		if drv[i] == "hso" then
-			retval = 9
-			break
 		end
 		i = i + 1
 	end

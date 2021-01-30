@@ -2,11 +2,11 @@ local fs  = require "nixio.fs"
 local sys = require "luci.sys"
 local uci = require "luci.model.uci".cursor()
 require("luci.util")
---require("luci.model.ipkg")
+require("luci.model.ipkg")
 
 
 
-local button = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" value=\" " .. translate("Click Here to Open the YAMon 3 Web Interface") .. " \" onclick=\"window.open('http://'+window.location.hostname+'/yamon/index.html" .. "')\"/>"
+local button = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"button\" value=\" " .. translate("[ CLICK HERE TO OPEN THE YAMON 3 WEB INTERFACE ]") .. " \" onclick=\"window.open('http://'+window.location.hostname+'/yamon/index.html" .. "')\"/>"
 
 local m = Map("yamon3", translate("YAMon 3 Bandwidth Monitor"), translate(" ") .. button)
 

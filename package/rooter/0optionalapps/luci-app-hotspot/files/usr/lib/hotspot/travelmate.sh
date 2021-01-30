@@ -71,12 +71,12 @@ do_radio24() {
 }
 
 check_radio() {
-	WW=$(uci get travelmate.global.radio24)
-		if [ -z $WW ]; then
+#	WW=$(uci get travelmate.global.radio24)
+#		if [ -z $WW ]; then
 			config_load wireless
 			config_foreach do_radio24 wifi-device
 			uci commit travelmate
-		fi
+#		fi
 }
 f_envload()
 {

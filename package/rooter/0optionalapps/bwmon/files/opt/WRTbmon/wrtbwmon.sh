@@ -9,6 +9,7 @@ basePath="/tmp/bwmon/"
 mkdir -p $basePath"data"
 dataPath=$basePath"data/"
 backPath=/opt/WRTbmon/data/
+mkdir -p "/opt/WRTbmon/data/"
 STARTIMEX=$(date +%s)
 STARTIMEY=$(date +%s)
 STARTIMEZ=$(date +%s)

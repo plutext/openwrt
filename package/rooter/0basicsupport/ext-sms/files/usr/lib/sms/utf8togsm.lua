@@ -87,7 +87,6 @@ function utf8togsm.chktxt(txt)
 	g7t[93] = "1B3E"
 	g7t[124] = "1B40"
 	g7t[0x20AC] = "1B65"
-	g7t[96] = "27"
 	local unicode = ''
 	local g7hex = ''
 	local g7isok = true
@@ -131,6 +130,9 @@ function utf8togsm.chktxt(txt)
 			end
 			unicode = unicode .. string.format("%04X", ch)
 			k = k + 1
+		elseif ch == 0x60 then
+			unicode = unicode .. '0060'
+			g7isok = false
 		elseif ch <= 0x7F then
 			res = g7t[ch]
 			if res == nil then

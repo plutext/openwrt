@@ -13,10 +13,19 @@ MANUF=$(echo "$OX" | awk -F[:] '/Manufacturer:/ { print $2}')
 if [ -z "$MANUF" ]; then
         ATCMDD="AT+CGMI"
         MANUF=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-        MANUF=$(echo -e "$MANUF" | { read _V ; read _V ; echo $_V ; })
+	MANUF=$(echo $MANUF)
+	MANUF=$(echo "${MANUF//[\"]/}")
+	MANUF=${MANUF::-3}
+	MPREFIX=${MANUF::8}
+	if [ "$MPREFIX" = "AT+CGMI " ]; then
+		MANUF=$(echo $MANUF | cut -c 9-)
+	fi
+	MPREFIX=${MANUF::7}
+	if [ "$MPREFIX" = "+CGMI: " ]; then
+		MANUF=$(echo $MANUF | cut -c 8-)
+	fi
 fi
-
-if [ "x$MANUF" = "x" ]; then
+if [ -z "$MANUF" ]; then
 	MANUF=$(uci get modem.modem$CURRMODEM.manuf)
 fi
 
@@ -25,15 +34,20 @@ MODEL=$(echo "$OX" | awk -F[,\ ] '/^\+MODEL:/ {print $2}')
 if [ -z "$MODEL" ]; then
         ATCMDD="AT+CGMM"
         MODEL=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
-        MODEL=$(echo -e "$MODEL" | { read _V ; read _V ; echo $_V ; })
-fi
-
-if [ "x$MODEL" != "x" ]; then
-	MODEL=$(echo "$MODEL" | sed -e 's/"//g')
-	if [ $MODEL = 0 ]; then
-		MODEL = "mf820"
+	MODEL=$(echo $MODEL)
+	MODEL=$(echo "${MODEL//[\"]/}")
+	MODEL=${MODEL::-3}
+	MPREFIX=${MODEL::8}
+	if [ "$MPREFIX" = "AT+CGMM " ]; then
+		MODEL=$(echo $MODEL | cut -c 9-)
 	fi
-else
+	MPREFIX=${MODEL::7}
+	if [ "$MPREFIX" = "+CGMM: " ]; then
+		MODEL=$(echo $MODEL | cut -c 8-)
+	fi
+	MODEL=$(echo $MODEL | cut -d, -f1)
+fi
+if [ -z "$MODEL" ]; then
 	MODEL=$(uci get modem.modem$CURRMODEM.model)
 fi
 
@@ -80,17 +94,13 @@ uci commit modem
 
 $ROOTER/luci/celltype.sh $CURRMODEM
 
-M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
-CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
-if [ "x$CNUM" != "x" ]; then
-	CNUM=$(echo ${CNUM%%$'\n'*} | sed -e 's/"//g')
-else
+M2=$(echo "$OX" | grep -o "+CNUM:[^,]\+,[^,]\+,")
+CNUM=$(echo "$M2" | cut -d\" -f4)
+CNUMx=$(echo "$M2" | cut -d\" -f2)
+if [ -z "$CNUM" ]; then
 	CNUM="*"
 fi
-CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
-if [ "x$CNUMx" != "x" ]; then
-	CNUMx=$(echo ${CNUMx%%$'\n'*} | sed -e 's/"//g')
-else
+if [ -z "$CNUMx" ]; then
 	CNUMx="*"
 fi
 
@@ -152,4 +162,3 @@ echo "$CNUMx" >> /tmp/msimnumx$CURRMODEM
 
 mv -f /tmp/msimdatax$CURRMODEM /tmp/msimdata$CURRMODEM
 mv -f /tmp/msimnumx$CURRMODEM /tmp/msimnum$CURRMODEM
-

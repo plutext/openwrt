@@ -138,12 +138,15 @@ check_all_empty() {
 #
 if [ "$ACTION" = add ]; then
 	bootdelay
-	if [ -f /tmp/modgone ]; then
-		log "Wait for modem removal"
-		while [ -f /tmp/modgone ]; do
-			sleep 1
-		done
-	fi
+	CNTR=0
+	while [ -e /tmp/modgone ]; do
+		sleep 1
+		CNTR=`expr $CNTR + 1`
+		if [ $CNTR -gt 10 ]; then
+			rm -f /tmp/modgone
+			break
+		fi
+	done
 	find_usb_attrs
 
 	if echo $DEVICENAME | grep -q ":" ; then
@@ -166,7 +169,7 @@ if [ "$ACTION" = add ]; then
 		log "Ignoring Linux Hub"
 		exit 0
 	fi
-	
+
 #
 # Ignore Ethernet adapters
 #
@@ -335,6 +338,12 @@ if [ "$ACTION" = add ]; then
 	cat /sys/kernel/debug/usb/devices > /tmp/wdrv
 	lua $ROOTER/protofind.lua $idV $idP 1
 	retval=$?
+	if [ $idV = 12d1 -a $idP = 15c1 ]; then
+		retval=27
+	fi
+	if [ $idV = 8087 -a $idP = 095a ]; then
+		retval=28
+	fi
 	display_top; display "ProtoFind returns : $retval"; display_bottom
 	rm -f /tmp/wdrv
 
@@ -347,12 +356,8 @@ if [ "$ACTION" = add ]; then
 	fi
 	rm -f /tmp/drv
 
-	if [ $idV = 12d1 -a $idP = 15c1 ]; then
-		retval=27
-	fi
-
 	if [ $retval -ne 0 ]; then
-		log "Found Modem$CURRMODEM"
+		log "Found Modem $CURRMODEM"
 		if [ $reinsert = 0 ]; then
 			uci set modem.modem$CURRMODEM.empty=0
 			uci set modem.modem$CURRMODEM.uVid=$uVid
@@ -373,6 +378,9 @@ if [ "$ACTION" = add ]; then
 		uci set modem.modem$CURRMODEM.active=1
 		uci set modem.modem$CURRMODEM.connected=0
 		uci commit modem
+		if [ -e $ROOTER/modem-led.sh ]; then
+			$ROOTER/modem-led.sh $CURRMODEM 1
+		fi
 	fi
 
 	if [ $reinsert = 0 -a $retval != 0 ]; then
@@ -420,19 +428,25 @@ if [ "$ACTION" = add ]; then
 		ln -s $ROOTER/connect/create_connect.sh $ROOTER_LINK/create_proto$CURRMODEM
 		$ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM &
 		;;
+	"28" )
+		log "Connecting a Fibocom NCM Modem"
+		ln -s $ROOTER/connect/create_connect.sh $ROOTER_LINK/create_proto$CURRMODEM
+		$ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM &
+		;;
 	"5" )
 		log "Connecting a Hostless Modem or Phone"
 		ln -s $ROOTER/connect/create_hostless.sh $ROOTER_LINK/create_proto$CURRMODEM
 		$ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM &
 		;;
-	"10"|"11"|"12"|"13"|"14"|"15" )
+	"10"|"11"|"12"|"13"|"14"|"15"|"16" )
 		log "Connecting a PPP Modem"
 		ln -s $ROOTER/ppp/create_ppp.sh $ROOTER_LINK/create_proto$CURRMODEM
 		$ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM
 		;;
 	"9" )
-		log "PPP HSO Modem"
-		rm -f /tmp/usbwait
+		log "Connecting an iPhone"
+		ln -s $ROOTER/connect/create_iphone.sh $ROOTER_LINK/create_proto$CURRMODEM
+		$ROOTER_LINK/create_proto$CURRMODEM $CURRMODEM
 		;;
 	esac
 
@@ -457,6 +471,9 @@ if [ "$ACTION" = remove ]; then
 			INTER=$(uci get modem.modem$retresult.inter)
 			if [ -z $INTER ]; then
 				INTER=$retresult
+			fi
+			if [ -e $ROOTER/modem-led.sh ]; then
+				$ROOTER/modem-led.sh $retresult 0
 			fi
 			uci set modem.modem$retresult.active=0
 			uci set modem.modem$retresult.connected=0
@@ -540,4 +557,3 @@ fi
 if [ "$ACTION" = "motion" ]; then
 	logger webcam motion event
 fi
-

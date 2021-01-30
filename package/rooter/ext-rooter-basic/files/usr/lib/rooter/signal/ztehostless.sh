@@ -43,6 +43,7 @@ make_status() {
 	echo "Hostless/Phone" >> /tmp/status$CURRMODEM.file
 	echo "-" >> /tmp/status$CURRMODEM.file
 	echo "-" >> /tmp/status$CURRMODEM.file
+	echo "-" >> /tmp/status$CURRMODEM.file
 }
 
 handle_timeout(){
@@ -64,7 +65,7 @@ handle_timeout(){
 		res="$?"
 		if [ "$res" = 0 ]; then
 			log "Killing process on timeout"
-			kill -9 $wget_pid 2> /dev/null	
+			kill -9 $wget_pid 2> /dev/null
 		fi
 	fi
 }
@@ -212,4 +213,3 @@ while [ 1 = 1 ]; do
 	done
 	STARTIMEX=$CURRTIME
 done
-

@@ -23,7 +23,22 @@ let t=time()+f
 gosub getresult
 if $s="^mTIMEOUT ERROR" print $s
 
+send "AT\^CA_INFO?^m"
+let t=time()+f
+gosub getresult
+if $s="^mTIMEOUT ERROR" print $s
+
+send "AT\^DEBUG?^m"
+let t=time()+f
+gosub getresult
+if $s="^mTIMEOUT ERROR" print $s
+
 send "AT$QCSYSMODE?^m"
+let t=time()+f
+gosub getresult
+if $s="^mTIMEOUT ERROR" print $s
+
+send "AT+TEMP?^m"
 let t=time()+f
 gosub getresult
 if $s="^mTIMEOUT ERROR" print $s

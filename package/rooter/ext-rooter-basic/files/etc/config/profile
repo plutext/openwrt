@@ -7,3 +7,5 @@ config default 'default'
 	option alive '0'
 	option delay '5'
 	option at '0'
+	option apn 'internet'
+	

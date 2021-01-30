@@ -64,6 +64,11 @@ make_signal() {
 	echo "$CNUM" >> /tmp/statusx$CURRMODEM.file
 	echo "$CNAM" >> /tmp/statusx$CURRMODEM.file
 	echo "$LBAND" >> /tmp/statusx$CURRMODEM.file
+	echo "$TEMP" >> /tmp/statusx$CURRMODEM.file
+	echo "$PROTO" >> /tmp/statusx$CURRMODEM.file
+	echo "$PCI" >> /tmp/statusx$CURRMODEM.file
+	echo "-" >> /tmp/statusx$CURRMODEM.file
+	echo "-" >> /tmp/statusx$CURRMODEM.file
 	mv -f /tmp/statusx$CURRMODEM.file /tmp/status$CURRMODEM.file
 }
 
@@ -91,6 +96,7 @@ rm -f /tmp/monstat$CURRMODEM
 
 while [ 1 = 1 ]; do
 	if [ $idV = 1546 -a $idP = 1146 ]; then
+# ublox
 		make_signal
 	else
 		echo "$IP" > /tmp/status$CURRMODEM.file
@@ -124,6 +130,8 @@ while [ 1 = 1 ]; do
 		echo "-" >> /tmp/status$CURRMODEM.file
 		echo "-" >> /tmp/status$CURRMODEM.file
 		echo "Hostless/Phone" >> /tmp/status$CURRMODEM.file
+		echo "-" >> /tmp/status$CURRMODEM.file
+		echo "-" >> /tmp/status$CURRMODEM.file
 		echo "-" >> /tmp/status$CURRMODEM.file
 	fi
 	if [ -e /tmp/monstat$CURRMODEM ]; then

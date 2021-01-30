@@ -43,7 +43,7 @@ rm -f /tmp/smsresult$CURRMODEM".at"
 > /tmp/smsslots$CURRMODEM
 
 while true; do
-	SLEEP="20"
+	SLEEP=$(uci get variable.info.smssleep)
 	while true; do
 		if mkdir "${LOCKDIR}" &>/dev/null; then
 			echo "$$" > "${PIDFILE}"
@@ -53,6 +53,9 @@ while true; do
 			SX=$(echo "$M2" | sed -e "s/  / /g")
 			USED=$(echo "$SX" | awk -F[,\ ] '/^\+CPMS:/ {print $2}')
 			MAXED=$(echo "$SX" | awk -F[,\ ] '/^\+CPMS:/ {print $3}')
+			if [ $MAXED -eq 0 ]; then
+				SLEEP="1800"
+			fi
 			if [ $USED -eq $(uci get modem.modem$CURRMODEM.smsnum) ]; then
 				if [ $(uci get modem.sms.menable) -eq 1 ]; then
 					RSRV=2

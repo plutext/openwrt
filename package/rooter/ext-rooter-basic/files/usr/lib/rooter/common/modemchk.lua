@@ -131,7 +131,7 @@ end
 -- may need    echo "2c7c 0121" > /sys/bus/usb/drivers/qmi_wwan/new_id
 -- may need    echo "2c7c 0306 ff" > /sys/bus/usb-serial/drivers/option1/new_id
 --
-if uvid == "2c7c" and (upid == "0121" or upid == "0125" or upid == "0306" or upid == "0296" or upid == "0512" or upid == "0620") then
+if uvid == "2c7c" and (upid == "0121" or upid == "0125" or upid == "0306" or upid == "0296" or upid == "0512" or upid == "0620" or upid == "0800") then
 	cretval = 2
 	retval = 3
 end
@@ -139,6 +139,11 @@ if uvid == "05c6" and upid == "9215" then
 	cretval = 2
 	retval = 3
 end
+if uvid == "1e0e" and upid == "9001" then
+	cretval = 2
+	retval = 3
+end
+
 
 dret = string.format("%d", retval)
 cret = string.format("%d", cretval)

@@ -22,7 +22,7 @@
 #      However, it might be safer to run restart.sh after you've editted things here.
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 
-_firmware='0'                                # which firmware is running on the router: permitted values: 0->DD-WRT(*) || 1->OpenWrt || 2->Asuswrt-Merlin || 3->Asuswrt-Merlin || 4->LEDE || 5->Xwrt-Vortex || 6->Turris || 7->Padavan
+_firmware='1'                                # which firmware is running on the router: permitted values: 0->DD-WRT(*) || 1->OpenWrt || 2->Asuswrt-Merlin || 3->Asuswrt-Merlin || 4->LEDE || 5->Xwrt-Vortex || 6->Turris || 7->Padavan
 _updatefreq='30'                             # number of seconds between updates (* default `15` sec)
 _publishInterval='4'                         # number of intervals between updates for to the website (* default `12`)
 _ispBillingDay='5'                           # roll-over day of the month for ISP billing (* default `1`)

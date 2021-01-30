@@ -10,6 +10,7 @@ CURRMODEM=$1
 COMMPORT=$2
 
 OX=$($ROOTER/gcom/gcom-locked "$COMMPORT" "t77info.gcom" "$CURRMODEM" | tr 'a-z' 'A-Z')
+
 O=$($ROOTER/common/processat.sh "$OX")
 O=$(echo $O)
 
@@ -24,9 +25,7 @@ MODE="-"
 MODTYPE="-"
 NETMODE="-"
 LBAND="-"
-TEMP="-"
-
-Oup=$(echo $O | tr 'a-z' 'A-Z')
+PCI="-"
 
 CSQ=$(echo $O | grep -o "CSQ: [0-9]\+" | grep -o "[0-9]\+")
 [ "x$CSQ" = "x" ] && CSQ=-1
@@ -34,7 +33,6 @@ CSQ=$(echo $O | grep -o "CSQ: [0-9]\+" | grep -o "[0-9]\+")
 if [ $CSQ -ge 0 -a $CSQ -le 31 ]; then
     CSQ_PER=$(($CSQ * 100/31))
     CSQ_RSSI=$((2 * CSQ - 113))
-    CSQX=$CSQ_RSSI
     [ $CSQ -eq 0 ] && CSQ_RSSI="<= "$CSQ_RSSI
     [ $CSQ -eq 31 ] && CSQ_RSSI=">= "$CSQ_RSSI
     CSQ_PER=$CSQ_PER"%"
@@ -44,21 +42,60 @@ else
     CSQ_PER="-"
     CSQ_RSSI="-"
 fi
+TEMP=$(echo $OX | grep -o "TSENS_TZ_SENSOR[0-9]:[0-9]\{1,3\}")
+if [ -n "$TEMP" ]; then
+	TEMP=${TEMP:17:3}
+	TEMP=$(echo $TEMP | grep -o "[0-9]\{1,3\}")$(printf "\xc2\xb0")"C"
+else
+	TEMP="-"
+fi
+TECH=$(echo $O" " | grep -o "+COPS: .,.,[^,]\+,[027]")
+TECH="${TECH: -1}"
 
-MODE="-"
-WS46=$(echo $O" " | grep -o "+COPS: .\+ OK " | tr " " ",")
-TECH=$(echo $WS46 | cut -d, -f5)
-
-if [ ! -z "$TECH" ]; then
-	MODE=$TECH
+if [ -n "$TECH" ]; then
 	SGCELL=$(echo $O" " | grep -o "\$QCSQ .\+ OK " | tr " " "," | tr ",:" ",")
 
-	WS46=$(echo $O" " | grep -o "AT\$QCSYSMODE? .\+ OK ")
-	WS46=$(echo "$WS46" | sed -e "s/AT\$QCSYSMODE? //g")
-	WS46=$(echo "$WS46" | sed -e "s/ OK//g")
-	
-	case $MODE in
+	case $TECH in
+		"7")
+			MODE="LTE"
+			RSSI=$(echo $O | grep -o " RSSI: [^D]\+D" | grep -o "[-0-9\.]\+")
+			CSQ_RSSI=$(echo $RSSI)" dBm"
+			RSCP=$(echo $O | grep -o "[^G] RSRP: [^D]\+D" | grep -o "[-0-9\.]\+")
+			RSCP=$(echo $RSCP)
+			ECIO=$(echo $O | grep -o " RSRQ: [^D]\+D" | grep -o "[-0-9\.]\+")
+			ECIO=$(echo $ECIO)
+			CHANNEL=$(echo $O | grep -o " EARFCN(DL/UL): [0-9]\+" | grep -o "[0-9]\+")
+			LBAND="B"$(echo $O | grep -o " BAND: [0-9]\+" | grep -o "[0-9]\+")
+			BWD=$(echo $O | grep -o " BW: [0-9\.]\+ MHZ" | grep -o "[0-9\.]\+")
+			if [ "$BWD" != "1.4" ]; then
+				BWD=${BWD/.*}
+			fi
+			LBAND=$LBAND" (Bandwidth $BWD MHz)"
+			SCC=$(echo $O | grep -o " SCC[1-9][^M]\+MHZ")
+			if [ -n "$SCC" ]; then
+				printf '%s\n' "$SCC" | while read SCCX; do
+					SCCX=$(echo $SCCX | tr " " ",")
+					SLBV=$(echo $SCCX | cut -d, -f5 | grep -o "B[0-9]\{1,3\}")
+					SBWV=$(echo $SCCX | cut -d, -f9)
+					if [ $SBWV != "1.4" ]; then
+						SBWV=${SBWV/.*}
+					fi
+					LBAND=$LBAND"<br />"$SLBV" (CA, Bandwidth "$SBWV" MHz)"
+					echo "$LBAND" > /tmp/lbandvar$CURRMODEM
+				done
+				if [ -e /tmp/lbandvar$CURRMODEM ]; then
+					read LBAND < /tmp/lbandvar$CURRMODEM
+					rm /tmp/lbandvar$CURRMODEM
+				fi
+			fi
+			PCI=$(echo $O | grep -o " ENB ID(PCI): [^(]\+([0-9]\{1,3\})" | grep -o "([0-9]\+)" | grep -o "[0-9]\+")
+			;;
 		*)
+			if [ $TECH = "2" ]; then
+				MODE="WCDMA"
+			else
+				MODE="GSM"
+			fi
 			RSCP=$(echo $SGCELL | cut -d, -f8)
 			RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")
 			ECIO=$(echo $SGCELL| cut -d, -f5)
@@ -66,36 +103,28 @@ if [ ! -z "$TECH" ]; then
 			RSSI=$(echo $SGCELL | cut -d, -f4)
 			CSQ_RSSI="-"$(echo $RSSI | grep -o "[0-9]\{1,3\}")" dBm"
 			;;
-		"7")
-			RSSI=$(echo $SGCELL | cut -d, -f4)
-			CSQ_RSSI=$(echo $RSSI | grep -o "[0-9]\{1,3\}")" dBm"
-			RSCP=$(echo $SGCELL | cut -d, -f8)
-			RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")" (RSRP)"
-			ECIO=$(echo $SGCELL| cut -d, -f4)
-			ECIO="-"$(echo $ECIO | grep -o "[0-9]\{1,3\}")" (RSRQ)"
-			;;	
 	esac
-
-	MODE=$WS46
 fi
 
 NETMODE="1"
 MODTYPE="8"
 
-
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'PCI="'"$PCI"'"'
+	echo 'TEMP="'"$TEMP"'"'
+} > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

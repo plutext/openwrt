@@ -3,7 +3,7 @@
 CURRMODEM=$1
 MSG=$2
 MSG1=$3
-COMMPORT="/dev/ttyUSB"$(uci get modem.modem$CURRMODEM.commport)
+COMMPORT="/dev/ttyUSB"$(uci -q get modem.modem$CURRMODEM.commport)
 if [ -z $MSG1 ]; then
 	MSG1="-"
 	COMMPORT="-"
@@ -42,4 +42,4 @@ echo "-" >> /tmp/status$CURRMODEM.file
 echo "-" >> /tmp/status$CURRMODEM.file
 echo "-" >> /tmp/status$CURRMODEM.file
 echo "-" >> /tmp/status$CURRMODEM.file
-
+echo "-" >> /tmp/status$CURRMODEM.file

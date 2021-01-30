@@ -122,6 +122,17 @@ case $PROT in
 		CP=0
 	fi
 	;;
+"16" )
+	if [ $retval -eq 0 ]; then
+		DP=2
+		CP=0
+		ln -s /dev/ttyACM$CP /dev/ttyUSB$CP
+		ln -s /dev/ttyACM$DP /dev/ttyUSB$DP
+	else
+		DP=0
+		CP=0
+	fi
+	;;
 esac
 $ROOTER/common/modemchk.lua "$idV" "$idP" "$DP" "$CP"
 source /tmp/parmpass
@@ -199,6 +210,10 @@ if [ $retval -eq 0 ]; then
 	esac
 	$ROOTER/common/lockchk.sh $CURRMODEM
 	$ROOTER/sms/check_sms.sh $CURRMODEM &
+fi
+
+if [ -e $ROOTER/modem-led.sh ]; then
+	$ROOTER/modem-led.sh $CURRMODEM 2
 fi
 
 rm -f /tmp/usbwait

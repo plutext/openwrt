@@ -25,6 +25,7 @@ MODTYPE="-"
 NETMODE="-"
 LBAND="-"
 TEMP="-"
+PCI="-"
 
 Oup=$(echo $O | tr 'a-z' 'A-Z')
 
@@ -55,15 +56,25 @@ fi
 SGCELL=$(echo $O" " | grep -o "+SGCELLINFO: .\+ OK " | tr " " ",")
 
 case $MODE in
-	"TD-LTE"|"FDD-LTE")
+	"TD-LTE"|"FDD-LTE"|"FDD")
 		RSSI=$(echo $SGCELL | cut -d, -f5)
 		CSQ_RSSI=$(echo $RSSI | grep -o "[0-9]\{1,3\}")" dBm"
 		RSCP=$(echo $SGCELL | cut -d, -f6)
-		RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")" (RSRP)"
+		RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")
 		ECIO=$(echo $SGCELL| cut -d, -f7)
-		ECIO="-"$(echo $ECIO | grep -o "[0-9]\{1,3\}")" (RSRQ)"
+		ECIO="-"$(echo $ECIO | grep -o "[0-9]\{1,3\}")
+		LBAND=$(echo $SGCELL | cut -d, -f9)
+		LBAND=$(echo $LBAND | grep -o "[0-9]\{1,5\}")
+		let LBAND=LBAND-119
+		LBAND="B"$LBAND
 		CHANNEL=$(echo $SGCELL | cut -d, -f10)
 		CHANNEL=$(echo $CHANNEL | grep -o "[0-9]\{1,5\}")
+		ICELL=$(echo $O" " | grep -o "+CELLINFO: .\+ OK " | tr " " ",")
+		PCI=$(echo $ICELL | cut -d, -f18)
+		PCI=$(echo $PCI | grep -o "[0-9]\{1,5\}")
+		if [ $MODE = "FDD" ]; then
+			MODE="FDD LTE"
+		fi
 		;;
 	"HSPA+"|"HSUPA"|"HSDPA"|"WCDMA")
 		RSCP=$(echo $SGCELL | cut -d, -f11)
@@ -82,7 +93,7 @@ case $MODE in
 		CHANNEL=$(echo $CHANNEL | grep -o "[0-9]\{1,4\}")
 		RSSI=$(echo $SGCELL | cut -d, -f9)
 		CSQ_RSSI=$(echo $RSSI | grep -o "[0-9]\{1,3\}")" dBm"
-		;;	
+		;;
 esac
 
 NETMODE="-"
@@ -125,6 +136,7 @@ echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
 echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
 echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
 echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+echo 'PCI="'"$PCI"'"' >> /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

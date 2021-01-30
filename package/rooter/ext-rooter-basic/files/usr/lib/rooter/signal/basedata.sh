@@ -83,7 +83,7 @@ case $pval in
 "3"|"30" )
 	PROTO="MBIM"
 	;;
-"6"|"4"|"7"|"24"|"26"|"27" )
+"6"|"4"|"7"|"24"|"26"|"27"|"28" )
 	PROTO="NCM"
 	;;
 "10"|"11"|"12"|"13"|"14"|"15" )
@@ -91,6 +91,9 @@ case $pval in
 	;;
 "5" )
 	PROTO="Ethernet"
+	;;
+"9" )
+	PROTO="ipheth"
 	;;
 esac
 
@@ -101,6 +104,3 @@ echo 'MODEM="'"$MODEM"'"' >> /tmp/base$CURRMODEM.file
 echo 'DOWN="'"$DOWN"'"' >> /tmp/base$CURRMODEM.file
 echo 'UP="'"$UP"'"' >> /tmp/base$CURRMODEM.file
 echo 'PROTO="'"$PROTO"'"' >> /tmp/base$CURRMODEM.file
-
-
-

@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 ROOTER=/usr/lib/rooter
@@ -28,27 +27,22 @@ OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$A
 OX=$($ROOTER/common/processat.sh "$OX")
 
 ON=$(echo "$OX" | awk -F[,\ ] '/^\+CPBS:/ {print $2}')
-if [ $ON = "\"ON\"" ]; then
+if [ "$ON" = "\"ON\"" ]; then
 	ATCMDD="AT+CPBW=1,\"$PHONE\",$TON,\"$NAME\""
 	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
 	ATCMDD="AT+CNUM"
 	OX=$($ROOTER/gcom/gcom-locked "/dev/ttyUSB$CPORT" "run-at.gcom" "$CURRMODEM" "$ATCMDD")
 	OX=$($ROOTER/common/processat.sh "$OX")
-	M2=$(echo "$OX" | sed -e "s/+CNUM: /+CNUM:,/g")
-	CNUM=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $3}')
-	if [ "x$CNUM" != "x" ]; then
-		CNUM=$(echo ${CNUM%%$'\n'*} | sed -e 's/"//g')
-	else
+	M2=$(echo "$OX" | grep -o "+CNUM:[^,]\+,[^,]\+,")
+	CNUM=$(echo "$M2" | cut -d\" -f4)
+	CNUMx=$(echo "$M2" | cut -d\" -f2)
+	if [ -z "$CNUM" ]; then
 		CNUM="*"
 	fi
-	CNUMx=$(echo "$M2" | awk -F[,] '/^\+CNUM:/ {print $2}')
-	if [ "x$CNUMx" != "x" ]; then
-		CNUMx=$(echo ${CNUMx%%$'\n'*} | sed -e 's/"//g')
-	else
+	if [ -z "$CNUMx" ]; then
 		CNUMx="*"
 	fi
 	echo "$CNUM" > /tmp/msimnumx$CURRMODEM
 	echo "$CNUMx" >> /tmp/msimnumx$CURRMODEM
 	mv -f /tmp/msimnumx$CURRMODEM /tmp/msimnum$CURRMODEM
 fi
-

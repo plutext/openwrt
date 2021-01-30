@@ -235,7 +235,7 @@ static struct board_info boards[] = {
                 .layout_id      = "8M",
                 .key            = KEY_NEXX_2,
         }, {
-				.id             = "WT3020",
+		.id             = "WT3020",
                 .hw_id          = HWID_NEXX_WT3020,
                 .layout_id      = "16M",
                 .key            = KEY_NEXX_2,

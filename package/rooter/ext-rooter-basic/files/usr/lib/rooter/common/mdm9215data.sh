@@ -25,6 +25,7 @@ MODTYPE="-"
 NETMODE="-"
 LBAND="-"
 TEMP="-"
+PCI="-"
 
 Oup=$(echo $O | tr 'a-z' 'A-Z')
 
@@ -56,7 +57,7 @@ if [ ! -z "$TECH" ]; then
 	WS46=$(echo $O" " | grep -o "AT\$QCSYSMODE? .\+ OK ")
 	WS46=$(echo "$WS46" | sed -e "s/AT\$QCSYSMODE? //g")
 	WS46=$(echo "$WS46" | sed -e "s/ OK//g")
-	
+
 	case $MODE in
 		*)
 			RSCP=$(echo $SGCELL | cut -d, -f8)
@@ -70,10 +71,10 @@ if [ ! -z "$TECH" ]; then
 			RSSI=$(echo $SGCELL | cut -d, -f4)
 			CSQ_RSSI=$(echo $RSSI | grep -o "[0-9]\{1,3\}")" dBm"
 			RSCP=$(echo $SGCELL | cut -d, -f8)
-			RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")" (RSRP)"
+			RSCP="-"$(echo $RSCP | grep -o "[0-9]\{1,3\}")
 			ECIO=$(echo $SGCELL| cut -d, -f4)
-			ECIO="-"$(echo $ECIO | grep -o "[0-9]\{1,3\}")" (RSRQ)"
-			;;	
+			ECIO="-"$(echo $ECIO | grep -o "[0-9]\{1,3\}")
+			;;
 	esac
 
 	MODE=$WS46
@@ -82,20 +83,22 @@ fi
 NETMODE="1"
 MODTYPE="8"
 
-
-echo 'CSQ="'"$CSQ"'"' > /tmp/signal$CURRMODEM.file
-echo 'CSQ_PER="'"$CSQ_PER"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CSQ_RSSI="'"$CSQ_RSSI"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO="'"$ECIO"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP="'"$RSCP"'"' >> /tmp/signal$CURRMODEM.file
-echo 'ECIO1="'"$ECIO1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'RSCP1="'"$RSCP1"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODE="'"$MODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'MODTYPE="'"$MODTYPE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'NETMODE="'"$NETMODE"'"' >> /tmp/signal$CURRMODEM.file
-echo 'CHANNEL="'"$CHANNEL"'"' >> /tmp/signal$CURRMODEM.file
-echo 'LBAND="'"$LBAND"'"' >> /tmp/signal$CURRMODEM.file
-echo 'TEMP="'"$TEMP"'"' >> /tmp/signal$CURRMODEM.file
+{
+	echo 'CSQ="'"$CSQ"'"'
+	echo 'CSQ_PER="'"$CSQ_PER"'"'
+	echo 'CSQ_RSSI="'"$CSQ_RSSI"'"'
+	echo 'ECIO="'"$ECIO"'"'
+	echo 'RSCP="'"$RSCP"'"'
+	echo 'ECIO1="'"$ECIO1"'"'
+	echo 'RSCP1="'"$RSCP1"'"'
+	echo 'MODE="'"$MODE"'"'
+	echo 'MODTYPE="'"$MODTYPE"'"'
+	echo 'NETMODE="'"$NETMODE"'"'
+	echo 'CHANNEL="'"$CHANNEL"'"'
+	echo 'LBAND="'"$LBAND"'"'
+	echo 'PCI="'"$PCI"'"'
+	echo 'TEMP="'"$TEMP"'"'
+} > /tmp/signal$CURRMODEM.file
 
 CONNECT=$(uci get modem.modem$CURRMODEM.connected)
 if [ $CONNECT -eq 0 ]; then

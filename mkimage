@@ -1,58 +1,19 @@
-#!/bin/sh
+#!/bin/sh 
 
-# automatic build maker
+#export TOOLCHAIN_DIR=$STAGING_DIR/toolchain-mipsel_24kc_gcc-7.5.0_musl
+#mipsel-openwrt-linux-gcc -o helloworld helloworld.c
 
-#build version
-#
-# Date of the build
-#
+#export TOOLCHAIN_DIR=$STAGING_DIR/toolchain-arm_cortex-a9+vfpv3-d16_gcc-7.5.0_musl_eabi
+#arm-openwrt-linux-gcc -o helloworld helloworld.c
 
-DATE="2020-01-12"
+#export TOOLCHAIN_DIR=$STAGING_DIR/toolchain-aarch64_cortex-a53_gcc-7.5.0_musl
+#aarch64-openwrt-linux-gcc -o helloworld helloworld.c
 
-NAME="GoldenOrb_"
-CODE=$NAME$DATE
-rm -rf ./files
-mkdir -p ./files/etc
+export STAGING_DIR=./staging_dir
+export TOOLCHAIN_DIR=$STAGING_DIR/toolchain-aarch64_cortex-a53_gcc-7.5.0_musl
+export LDCFLAGS=$TOOLCHAIN_DIR/usr/lib
+export LD_LIBRARY_PATH=$TOOLCHAIN_DIR/usr/lib
+export PATH=$TOOLCHAIN_DIR/bin:$PATH
 
-echo 'CODENAME="'"$CODE"'"' > ./files/etc/codename
 
-echo "                            <model>" > ./files/etc/header_msg
-echo "/img/header.png" >> ./files/etc/header_msg
-echo "/img/rosy.jpg" >> ./files/etc/header_msg
-
-BASE="openwrt-"
-BASEO="openwrt-ar71xx-generic-tl-"
-BASEQ="openwrt-ar71xx-generic-"
-ENDO="-squashfs-factory"
-ENDU="-squashfs-sysupgrade"
-
-TYP="-GO"
-END=$TYP$DATE
-
-#
-# change name of configuration file to match the desired router
-#
-
-cp ./configfiles/.config_name ./.config
-
-DNS=$(cat "./.config" | grep "CONFIG_PACKAGE_dnsmasq-full=y")
-if [ ! -z $DNS ]; then
-	sed -i -e 's/CONFIG_PACKAGE_dnsmasq=y/# CONFIG_PACKAGE_dnsmasq is not set/g' ./.config
-fi
-WPAD=$(cat "./.config" | grep "CONFIG_PACKAGE_wpad-basic=y")
-if [ ! -z $WPAD ]; then
-	sed -i -e 's/CONFIG_PACKAGE_wpad-basic=y/# CONFIG_PACKAGE_wpad-basic is not set/g' ./.config
-fi
-WPAD=$(cat "./.config" | grep "CONFIG_PACKAGE_wpad=y")
-if [ ! -z $WPAD ]; then
-	sed -i -e 's/CONFIG_PACKAGE_wpad-mini=y/# CONFIG_PACKAGE_wpad-mini is not set/g' ./.config
-fi
-
-make V=s
-
-#
-# this part of the script does the copying, renaming and zipping of the image file(s)
-#
-# copy the section from imagecopy for your router
-#
-
+aarch64-openwrt-linux-gcc -o helloworld helloworld.c

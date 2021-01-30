@@ -4,29 +4,28 @@
 local fs  = require "nixio.fs"
 local sys = require "luci.sys"
 local uci = require "luci.model.uci".cursor()
-local testfullps = luci.sys.exec("ps --help 2>&1 | grep BusyBox") --check which ps do we have
+local testfullps = sys.exec("ps --help 2>&1 | grep BusyBox") --check which ps do we have
 local psstring = (string.len(testfullps)>0) and  "ps w" or  "ps axfw" --set command we use to get pid
 
-local m = Map("openvpn", translate("OpenVPN"), translate("Set up a VPN Tunnel on your Router"))
-
-m.on_after_save = function(self)
-	luci.sys.call("/usr/lib/easyrsa/firewall.sh &")
-	luci.sys.call("/usr/lib/easyrsa/dns.sh &")
-end
-
-local_web="<p>&nbsp;<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\" " .. "OpenVPN Recipes" .. " \" onclick=\"window.open('http://www.ofmodemsandmen.com/recipes.html')\"/></p>"
-
+local m = Map("openvpn", translate("OpenVPN"))
 local s = m:section( TypedSection, "openvpn", translate("OpenVPN instances"), translate("Below is a list of configured OpenVPN instances and their current state") )
 s.template = "cbi/tblsection"
 s.template_addremove = "openvpn/cbi-select-input-add"
 s.addremove = true
 s.add_select_options = { }
-s.extedit = luci.dispatcher.build_url(
-	"admin", "services", "openvpn", "basic", "%s"
-)
 
-uci:load("rooter_recipes")
-uci:foreach( "rooter_recipes", "openvpn_recipe",
+local cfg = s:option(DummyValue, "config")
+function cfg.cfgvalue(self, section)
+	local file_cfg = self.map:get(section, "config")
+	if file_cfg then
+		s.extedit = luci.dispatcher.build_url("admin", "vpn", "openvpn", "file", "%s")
+	else
+		s.extedit = luci.dispatcher.build_url("admin", "vpn", "openvpn", "basic", "%s")
+	end
+end
+
+uci:load("openvpn_recipes")
+uci:foreach( "openvpn_recipes", "openvpn_recipe",
 	function(section)
 		s.add_select_options[section['.name']] =
 			section['_description'] or section['.name']
@@ -34,9 +33,9 @@ uci:foreach( "rooter_recipes", "openvpn_recipe",
 )
 
 function s.getPID(section) -- Universal function which returns valid pid # or nil
-	local pid = sys.exec("%s | grep -w %s | grep openvpn | grep -v grep | awk '{print $1}'" % { psstring,section} )
-	if pid and #pid > 0 and tonumber(pid) ~= nil then
-		return tonumber(pid)
+	local pid = sys.exec("%s | grep -w '[o]penvpn(%s)'" % { psstring, section })
+	if pid and #pid > 0 then
+		return tonumber(pid:match("^%s*(%d+)"))
 	else
 		return nil
 	end
@@ -60,29 +59,47 @@ function s.create(self, name)
 		luci.cbi.CREATE_PREFIX .. self.config .. "." ..
 		self.sectiontype .. ".select"
 	)
-	name = luci.http.formvalue(
+	local name = luci.http.formvalue(
 		luci.cbi.CREATE_PREFIX .. self.config .. "." ..
 		self.sectiontype .. ".text"
 	)
 	if #name > 3 and not name:match("[^a-zA-Z0-9_]") then
 		local s = uci:section("openvpn", "openvpn", name)
 		if s then
-			local options = uci:get_all("rooter_recipes", recipe)
+			local options = uci:get_all("openvpn_recipes", recipe)
 			for k, v in pairs(options) do
-				uci:set("openvpn", name, k, v)
+				if k ~= "_role" and k ~= "_description" then
+					if type(v) == "boolean" then
+						v = v and "1" or "0"
+					end
+					uci:set("openvpn", name, k, v)
+				end
 			end
-			uci:delete("openvpn", name, "_role")
-			uci:delete("openvpn", name, "_description")
 			uci:save("openvpn")
-			luci.http.redirect( self.extedit:format(name) )
+			uci:commit("openvpn")
+			if extedit then
+				luci.http.redirect( self.extedit:format(name) )
+			end
 		end
 	elseif #name > 0 then
 		self.invalid_cts = true
 	end
-
 	return 0
 end
 
+function s.remove(self, name)
+	local cfg_file  = "/etc/openvpn/" ..name.. ".ovpn"
+	local auth_file = "/etc/openvpn/" ..name.. ".auth"
+	if fs.access(cfg_file) then
+		fs.unlink(cfg_file)
+	end
+	if fs.access(auth_file) then
+		fs.unlink(auth_file)
+	end
+	uci:delete("openvpn", name)
+	uci:save("openvpn")
+	uci:commit("openvpn")
+end
 
 s:option( Flag, "enabled", translate("Enabled") )
 s:option( Flag, "bootstart", translate("Start on Bootup") )
@@ -101,7 +118,7 @@ end
 local updown = s:option( Button, "_updown", translate("Start/Stop") )
 updown._state = false
 updown.redirect = luci.dispatcher.build_url(
-	"admin", "services", "openvpn"
+	"admin", "vpn", "openvpn"
 )
 function updown.cbid(self, section)
 	local pid = s.getPID(section)
@@ -115,105 +132,46 @@ function updown.cfgvalue(self, section)
 end
 function updown.write(self, section, value)
 	if self.option == "stop" then
-		local pid = s.getPID(section)
-		if pid ~= nil then
-			sys.process.signal(pid,15)
-			while pid ~= nil do
-				pid = s.getPID(section)
-			end
-		end
+		--sys.call("/etc/init.d/openvpn stop %s" % section)
+		sys.call("/usr/lib/easyrsa/vpn.sh %s" % section)
 	else
-		luci.sys.call("/etc/init.d/openvpn start %s" % section)
+		sys.call("/etc/init.d/openvpn start %s" % section)
 	end
 	luci.http.redirect( self.redirect )
 end
 
-
 local port = s:option( DummyValue, "port", translate("Port") )
 function port.cfgvalue(self, section)
 	local val = AbstractValue.cfgvalue(self, section)
-	return val or "1194"
+	if not val then
+		local file_cfg = self.map:get(section, "config")
+		if file_cfg  and fs.access(file_cfg) then
+			val = sys.exec("awk '{if(match(tolower($1),/^port$/)&&match($2,/[0-9]+/)){cnt++;printf $2;exit}}END{if(cnt==0)printf \"-\"}' " ..file_cfg)
+			if val == "-" then
+				val = sys.exec("awk '{if(match(tolower($1),/^remote$/)&&match($3,/[0-9]+/)){cnt++;printf $3;exit}}END{if(cnt==0)printf \"-\"}' " ..file_cfg)
+			end
+		end
+	end
+	return val or "-"
 end
 
 local proto = s:option( DummyValue, "proto", translate("Protocol") )
 function proto.cfgvalue(self, section)
 	local val = AbstractValue.cfgvalue(self, section)
-	return val or "udp"
+	if not val then
+		local file_cfg = self.map:get(section, "config")
+		if file_cfg and fs.access(file_cfg) then
+			val = sys.exec("awk '{if(match(tolower($1),/^proto$/)&&match(tolower($2),/^udp[46]*$|^tcp[46]*-server$|^tcp[46]*-client$/)){cnt++;printf tolower($2);exit}}END{if(cnt==0)printf \"-\"}' " ..file_cfg)
+			if val == "-" then
+				val = sys.exec("awk '{if(match(tolower($1),/^remote$/)&&match(tolower($4),/^udp[46]*$|^tcp[46]*-server$|^tcp[46]*-client$/)){cnt++;printf $4;exit}}END{if(cnt==0)printf \"-\"}' " ..file_cfg)
+			end
+		end
+	end
+	return val or "-"
 end
 
---xw = m:section(TypedSection, "settings", translate(" "), translate("Click the button below for a guide on using the Recipes for creating OpenVPN Instances."))
---xw.anonymous = true
---btn = xw:option(DummyValue, "_dmy", translate(" ") .. local_web);
-
-gw = m:section(TypedSection, "settings", translate("Advanced Options"))
-gw.anonymous = true
-gw:tab("default", translate("Custom Firewall Settings"))
-gw:tab("dns", translate("Custom DNS Settings"))
-gw:tab("key", translate("Key and Certificate Generation"))
-
-this_tab = "default"
-
-gw:taboption(this_tab, Flag, "vpn2lan", translate("Forward Client VPN to LAN"), translate("(Client) Allow clients behind the VPN server to connect to computers within your LAN") )
-gw:taboption(this_tab, Flag, "vpns2lan", translate("Forward Server VPN to LAN"), translate("(Server) Allow clients behind the VPN server to connect to computers within your LAN") )
-gw:taboption(this_tab, Flag, "vpn2wan", translate("Forward Server VPN to WAN"), translate("(Server) Allow clients to connect to the internet (WAN) through the tunnel") )
-
-this_tab = "dns"
-
-gw:taboption(this_tab, Flag, "lanopendns", translate("LAN DNS using OpenDNS"), translate("Fixed DNS on LAN interface using OpenDNS") )
-gw:taboption(this_tab, Flag, "langoogle", translate("LAN DNS using Google"), translate("Fixed DNS on LAN interface using Google") )
-gw:taboption(this_tab, Flag, "wanopendns", translate("WAN DNS using OpenDNS"), translate("Fixed DNS on WAN interface using OpenDNS") )
-gw:taboption(this_tab, Flag, "wangoogle", translate("WAN DNS using Google"), translate("Fixed DNS on WAN interface using Google") )
-
-this_tab = "key"
-
-country = gw:taboption(this_tab, Value, "country", translate("Country Name :"), translate("2 letter country abbreviation")); 
-country.optional=false; 
-country.rmempty = true;
-country.default="CA"
-country.datatype = "rangelength(2, 2)"
-
-city = gw:taboption(this_tab, Value, "city", translate("City Name :")); 
-city.optional=false; 
-city.rmempty = true;
-city.default="Abbotsford"
-city.datatype = "minlength(2)"
-
-organ = gw:taboption(this_tab, Value, "organ", translate("Organization Name :"), translate("name will appear on certs and keys")); 
-organ.optional=false; 
-organ.rmempty = true;
-organ.default="ROOter"
-organ.datatype = "minlength(2)"
-
-comm = gw:taboption(this_tab, Value, "comm", translate("Common Name :"), translate("(Optional) Common Name of Organization")); 
-comm.optional=true; 
-comm.rmempty = true;
-
-unit = gw:taboption(this_tab, Value, "unit", translate("Section Name :"), translate("(Optional) Name of Section")); 
-unit.optional=true; 
-unit.rmempty = true;
-
-unstruc = gw:taboption(this_tab, Value, "unstruc", translate("Optional Organization Name :"), translate("(Optional) Another Name for Organization")); 
-unstruc.optional=true; 
-unstruc.rmempty = true;
-
-email = gw:taboption(this_tab, Value, "email", translate("Email Address :"), translate("(Optional) Email Address")); 
-unit.optional=true; 
-unit.rmempty = true;
-
-days = gw:taboption(this_tab, Value, "days", translate("Days to certify for :"), translate("number of days certs and keys are valid")); 
-days.optional=false; 
-days.rmempty = true;
-days.default="3650"
-days.datatype = "min(1)"
-
-clnt = gw:taboption(this_tab, Value, "nclient", translate("Number of Clients :"), translate("number of clients to generate certs and keys for")); 
-clnt.optional=false; 
-clnt.rmempty = true;
-clnt.default="1"
-clnt.datatype = "min(1)"
-
-sx = gw:taboption(this_tab, Value, "_dmy1", translate(" "))
-sx.template = "easyrsa/easyrsa"
-
+function m.on_after_apply(self,map)
+	--sys.call('/etc/init.d/openvpn reload')
+end
 
 return m

@@ -6,7 +6,7 @@ opengt
 
 //send "ate0^m"
 //waitquiet 1 0.2
-send "AT+COPS=2;+CFUN=0^m"
+send "AT+COPS=2;+CFUN=4^m"
 waitfor 5 "OK"
 sleep 5
 send "AT+CFUN?^m"
@@ -23,4 +23,3 @@ exit 0
 print "+CME ERROR"
 :end
 exit 0
-

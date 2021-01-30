@@ -1,7 +1,7 @@
 module("luci.controller.admin.modem", package.seeall)
 
 function index()
-	entry({"admin", "modem"}, firstchild(), "Modem", 35).dependent=false
+	entry({"admin", "modem"}, firstchild(), "Modem", 25).dependent=false
 --	entry({"admin", "modem", "cinfo"}, cbi("rooter/connection", {autoapply=true}), "Connection Info", 10)
 	entry({"admin", "modem", "prof"}, cbi("rooter/profiles"), "Connection Profile", 2)
 --	entry({"admin", "modem", "conmon"}, cbi("rooter/connmonitor"), "Connection Monitoring", 20)
@@ -10,6 +10,9 @@ function index()
 	entry({"admin", "modem", "cust"}, cbi("rooter/customize"), "Custom Modem Ports", 55)
 	entry({"admin", "modem", "log"}, template("rooter/log"), "Connection Log", 60)
 	entry({"admin", "modem", "misc"}, template("rooter/misc"), "Miscellaneous", 40)
+	
+	entry({"admin", "modem", "block"},
+		template("rooter/bandlock"))
 
 	entry({"admin", "modem", "get_csq"}, call("action_get_csq"))
 	entry({"admin", "modem", "change_port"}, call("action_change_port"))
@@ -29,6 +32,8 @@ function index()
 	entry({"admin", "modem", "change_phone"}, call("action_change_phone"))
 	entry({"admin", "modem", "clear_log"}, call("action_clear_log"))
 	entry({"admin", "modem", "externalip"}, call("action_externalip"))
+	entry({"admin", "modem", "send_scancmd"}, call("action_send_scancmd"))
+	entry({"admin", "modem", "send_lockcmd"}, call("action_send_lockcmd"))
 end
 
 function trim(s)
@@ -109,6 +114,11 @@ end
 
 function action_check_misc()
 	local rv ={}
+	local bnd1 = {}
+	local bnd2 = {}
+	local bnd31 = {}
+	local bnd32 = {}
+	local bnd33 = {}
 	local file
 	local active
 	local connect
@@ -128,6 +138,69 @@ function action_check_misc()
 				active = "1"
 			else
 				active = "2"
+			end
+			uVid = luci.model.uci.cursor():get("modem", "modem" .. miscnum, "uVid")
+			rv["uVid"] = uVid
+			os.execute("/usr/lib/rooter/luci/mask.sh")
+			file = io.open("/tmp/bmask", "r")
+			if file == nil then
+				rv["bndstr"] = "0"
+				rv["bndsup"] = "0"
+			else
+				line = file:read("*line")
+				rv["bndstr"] = line
+				line = file:read("*line")
+				rv["bndsup"] = line
+				line = file:read("*line")
+				ca = line
+				if ca ~= nil then
+					line = file:read("*line")
+					ca3 = line
+				end
+				file:close()
+				
+				indx = 0
+				if ca ~= nil then
+					file = io.open("/usr/lib/rooter/luci/" .. ca, "r")
+					line = file:read("*line")
+					repeat
+						s, e = line:find(" ")
+						b1 = trim(line:sub(1, s-1))
+						bnd1[indx] = b1
+						b2 = trim(line:sub(s+1))
+						bnd2[indx] = b2
+						indx = indx +1
+						line = file:read("*line")
+					until line == nil
+					file:close()
+				end
+				rv['b1'] = bnd1
+				rv['b2'] = bnd2
+				rv['indx'] = tostring(indx)
+				
+				indx3 = 0
+				if ca3 ~= nil then
+					file = io.open("/usr/lib/rooter/luci/" .. ca3, "r")
+					line = file:read("*line")
+					repeat
+						s, e = line:find(" ")
+						b1 = trim(line:sub(1, s-1))
+						bnd31[indx3] = b1
+						cs, ce = line:find(" ", s+1)
+						b2 = trim(line:sub(s+1, cs-1))
+						bnd32[indx3] = b2
+						b3 = trim(line:sub(cs+1))
+						bnd33[indx3] = b3
+						indx3 = indx3 +1
+						line = file:read("*line")
+					until line == nil
+					file:close()
+				end
+				rv['b31'] = bnd31
+				rv['b32'] = bnd32
+				rv['b33'] = bnd33
+				rv['indx3'] = tostring(indx3)
+				
 			end
 		end
 		netmode = luci.model.uci.cursor():get("modem", "modem" .. miscnum, "netmode")
@@ -254,6 +327,7 @@ function action_get_csq()
 	rv["lband"] = file:read("*line")
 	rv["tempur"] = file:read("*line")
 	rv["proto"] = file:read("*line")
+	rv["pci"] = file:read("*line")
 
 	file:close()
 
@@ -373,4 +447,28 @@ function action_externalip()
 
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(rv)
+end
+
+function action_send_scancmd()
+	local rv ={}
+	local file
+	os.execute("/usr/lib/rooter/luci/scancmd.sh")
+
+	result = "/tmp/scan"
+	file = io.open(result, "r")
+	if file ~= nil then
+		rv["result"] = file:read("*all")
+		file:close()
+		os.execute("/usr/lib/rooter/luci/luaops.sh delete /tmp/scan")
+	else
+		rv["result"] = " "
+	end
+
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(rv)
+end
+
+function action_send_lockcmd()
+	local set = luci.http.formvalue("set")
+	os.execute("/usr/lib/rooter/luci/lock.sh " .. set)
 end

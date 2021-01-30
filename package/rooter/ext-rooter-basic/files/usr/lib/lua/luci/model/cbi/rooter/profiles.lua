@@ -23,6 +23,7 @@ this_tab = "default"
 
 ma = di:taboption(this_tab, Value, "apn", "APN :"); 
 ma.rmempty = true;
+ma.default = "broadband"
 
 mu = di:taboption(this_tab, Value, "user", "Connection User Name :"); 
 mu.optional=false; 
@@ -42,6 +43,11 @@ mau:value("0", "None")
 mau:value("1", "PAP")
 mau:value("2", "CHAP")
 mau.default = "0"
+
+mtz = di:taboption(this_tab, ListValue, "tzone", "Auto Set Timezone", "Set the Timezone automatically when modem connects");
+mtz:value("0", "No")
+mtz:value("1", "Yes")
+mtz.default=1
 
 this_taba = "advance"
 
@@ -239,6 +245,7 @@ cb2:depends("alive", "2")
 cb2:depends("alive", "3")
 cb2:depends("alive", "4")
 cb2.optional=false;
+cb2.default="8.8.8.8"
 
 --
 -- Custom profile
@@ -364,6 +371,11 @@ cmau:value("1", "PAP")
 cmau:value("2", "CHAP")
 cmau.default = "0"
 
+cmtz = s:taboption(this_ctab, ListValue, "tzone", "Set Timezone", "Set the Timezone automatically when modem connects");
+cmtz:value("0", "No")
+cmtz:value("1", "Yes")
+cmtz.default=1
+
 this_ctaba = "cadvanced"
 
 cmf = s:taboption(this_ctaba, ListValue, "ppp", "Force Modem to PPP Protocol :");
@@ -375,6 +387,7 @@ cmw = s:taboption(this_ctaba, ListValue, "inter", "Modem Interface Selection :")
 cmw:value("0", "Auto")
 cmw:value("1", "WAN1")
 cmw:value("2", "WAN2")
+cmw:value("3", "OFF")
 cmw.default=0
 
 cmd = s:taboption(this_ctaba, Value, "delay", "Connection Delay in Seconds :"); 

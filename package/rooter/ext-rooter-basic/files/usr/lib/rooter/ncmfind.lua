@@ -41,7 +41,10 @@ repeat
 							if proto == "2" or proto == "02" or proto == "12" or proto == "32" or proto == "42" or proto == "62" or proto == "72" then
 								break
 							else
-								Inter = Inter + 1
+								s, e = line:find("=option")
+								if s ~= nil then
+									Inter = Inter + 1
+								end
 							end
 						end
 						s, e = line:find("T:")
