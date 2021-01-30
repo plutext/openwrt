@@ -298,6 +298,27 @@ define Device/xiaomi_mir3g
 endef
 TARGET_DEVICES += xiaomi_mir3g
 
+define Device/beeline_smartbox-turbo-plus
+  $(Device/uimage-lzma-loader)
+  DTS := BeelineSB-Turbo-plus
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4096k
+  IMAGE_SIZE := 124416k
+  UBINIZE_OPTS := -E 5
+  IMAGES += kernel1.bin rootfs0.bin breed.bin
+  IMAGE/kernel1.bin := append-kernel
+  IMAGE/rootfs0.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/breed.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-kernel | \
+	pad-to $$(KERNEL_SIZE) | append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_TITLE := Beeline SmartBox TURBO+
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-usb3 \
+	kmod-usb-ledtrig-usbport uboot-envtools wpad-basic
+endef
+TARGET_DEVICES += beeline_smartbox-turbo-plus
+
+
 define Device/mt7621
   DTS := MT7621
   BLOCKSIZE := 64k
@@ -640,6 +661,14 @@ define Device/zbt-we1326
 	kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-sdhci-mt7620 wpad-basic
 endef
 TARGET_DEVICES += zbt-we1326
+
+define Device/zbt-we1326v5
+  DTS := ZBT-WE1326v5
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := ZBT WE1326v5
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 kmod-sdhci-mt7620 wpad-basic
+endef
+TARGET_DEVICES += zbt-we1326v5
 
 define Device/zbtlink_zbt-we3526
   DTS := ZBT-WE3526

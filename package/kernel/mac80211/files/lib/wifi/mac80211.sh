@@ -81,12 +81,22 @@ detect_mac80211() {
 		htmode=""
 		ht_capab=""
 
-		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT20
+		iw phy "$dev" info | grep -q 'Capabilities:' && htmode=HT40
 
 		iw phy "$dev" info | grep -q '5180 MHz' && {
-			mode_band="a"
-			channel="36"
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
+			t4=$(iw phy "$dev" info | grep '2412 MHz')
+			if [ ! -z "$t4" ]; then
+				if [ $htmode = "VHT80" ]; then
+					mode_band="a"
+					channel="36"
+				else
+					htmode="HT40"
+				fi
+			else
+				mode_band="a"
+				channel="36"
+			fi
 		}
 
 		[ -n "$htmode" ] && ht_capab="set wireless.radio${devidx}.htmode=$htmode"
@@ -113,15 +123,23 @@ detect_mac80211() {
 			set wireless.radio${devidx}.hwmode=11${mode_band}
 			${dev_id}
 			${ht_capab}
-			set wireless.radio${devidx}.disabled=1
+			set wireless.radio${devidx}.disabled=0
+			set wireless.radio${devidx}.noscan=1
 
 			set wireless.default_radio${devidx}=wifi-iface
 			set wireless.default_radio${devidx}.device=radio${devidx}
 			set wireless.default_radio${devidx}.network=lan
 			set wireless.default_radio${devidx}.mode=ap
-			set wireless.default_radio${devidx}.ssid=OpenWrt
-			set wireless.default_radio${devidx}.encryption=none
+			set wireless.default_radio${devidx}.ssid=ROOter
+			set wireless.default_radio${devidx}.encryption=psk
+			set wireless.default_radio${devidx}.key=rooter2017
 EOF
+		if [ $channel = "11" ]; then
+			uci set wireless.radio${devidx}.country="US"
+			uci set wireless.radio${devidx}.txpower=30
+		else
+			uci set wireless.radio${devidx}.country="US"
+		fi
 		uci -q commit wireless
 
 		devidx=$(($devidx + 1))

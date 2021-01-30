@@ -41,6 +41,14 @@
 			label = "zbt-wg3526:green:status";
 			gpios = <&gpio0 24 GPIO_ACTIVE_LOW>;
 		};
+		signal {
+			label = "zbt-wg3526:green:signal";
+			gpios = <&gpio0 10 GPIO_ACTIVE_LOW>;
+		};
+		globe {
+			label = "zbt-wg3526:green:globe";
+			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+		};
 	};
 };
 

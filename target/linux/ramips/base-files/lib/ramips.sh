@@ -640,6 +640,9 @@ ramips_board_detect() {
 	*"WT3020 (8M)")
 		name="wt3020-8M"
 		;;
+	*"WT3020 (16M)")
+		name="wt3020-16M"
+		;;
 	*"WZR-AGL300NH")
 		name="wzr-agl300nh"
 		;;
@@ -666,6 +669,9 @@ ramips_board_detect() {
 		;;
 	*"ZBT-WE1326")
 		name="zbt-we1326"
+		;;
+	*"ZBT-WE1326v5")
+		name="zbt-we1326v5"
 		;;
 	*"ZBT-WE2026")
 		name="zbt-we2026"
